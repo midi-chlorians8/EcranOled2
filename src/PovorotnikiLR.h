@@ -2,7 +2,7 @@
 // SK6812
 #include <NeoPixelBus.h>
 // SK6812
-const uint16_t PixelCount = 26; // this example assumes 4 pixels, making it smaller will cause a failure
+const uint16_t PixelCount = 66; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t  PixelPin = 12; 
 NeoPixelBus<NeoRgbwFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
 #define colorSaturation 128
@@ -46,10 +46,11 @@ void Povorotniki(){
   // Блок ответственный за то чтоб при выходе из меню не моргали поворотники
   
   
-    if (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==HIGH ){PovorotnikiRightOff(); } //Чтоб при нажатии 2х кнопок не светило  // Один раз отключить правый поворотник
+    if (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==HIGH ){ PovorotnikiRightOff(); PovorotnikiLeftOff(); } //Чтоб при нажатии 2х кнопок не светило  // Один раз отключить правый поворотник
 
     if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)
-        if(digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW){ // Если кнопка право нажата
+      // <- Поворотник вправо  
+        if(     (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW) || AutomaticModeActivateR==true       ){ // Если кнопка право нажата
             RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
@@ -74,8 +75,11 @@ void Povorotniki(){
             }
         }                                  // Если кнопка право нажата
         else{                          // Если кнопка право отпущена   
-            PovorotnikiRightOff();     // Если кнопка право отпущена // Один раз отключить правый поворотник
-        }                            
+            if(AutomaticModeActivateR != true){ //Если включен автомат режим то убираем быстрое моргание при отпускании
+                PovorotnikiRightOff();     // Если кнопка право отпущена // Один раз отключить правый поворотник
+            }
+        }                    
+      // <- Поворотник вправо          
       // <- Поворотник влево
         if(digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==HIGH){ // Если кнопка право нажата
             RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый

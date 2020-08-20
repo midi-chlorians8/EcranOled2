@@ -1,6 +1,10 @@
 
+
 #include <Arduino.h>
 #include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
+
+int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
+
 #include "DebounceV2.h" // Обработка вертикальных кнопок
 bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
 
@@ -8,10 +12,12 @@ bool OffPovorotniki = false; //Переменная выключае повор�
 bool change101 = false; // Флаг что кнопка нажата и значение изменилось
 unsigned long timing101;  //для задержки в 500 мсек в 1.1 (101)
 // Переменные для того чтоб в 101 при переборе значения поворотники моргали
-bool AutomaticModeActivateR; // Активирует автоматический режим. (Если On cчитано из памяти) . Для правого поворотника   >
+bool AutomaticModeActivateR; // Активирует автоматический режим. (Если On cчитано из памяти) . Для правого поворотника   >0
 bool AutomaticModeActivateL;
-
 #include "PovorotnikiLR.h" // Включение и выключение поворотников
+
+bool OneRazSavePRK_GE;// Для корректного сбороса автоматического режима правого поворотника
+bool OneRazSavePRK_GE2L;// Для корректного сбороса автоматического режима левого поворотника
 
 #include <U8g2lib.h>    // Для экрана
 #include "EEPROM.h" 
@@ -249,7 +255,7 @@ void loop(void) {
 while(1){
 
 // Печать отладки
-
+/*
 {
 Serial.print(" MenuLayer:" );Serial.print(MenuLayer );
 Serial.print(" PositionUpCount:" );   Serial.print(PositionUpCount );
@@ -259,11 +265,11 @@ Serial.print(" OffPovorotniki:" );Serial.print(OffPovorotniki );
 //Serial.print(" millis() - timingOffPovorotniki:" );Serial.print(millis() - timingOffPovorotniki );
 Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR );
 
-//Serial.print(" old_SettingMaxVolumeOnSpeed:" );Serial.print(old_SettingMaxVolumeOnSpeed );
 Serial.print(" AutomaticMode:" );Serial.print(AutomaticMode);
+Serial.print(" CountStepTiming:" );Serial.print(CountStepTiming );
 Serial.println();
 }
-
+*/
 // Печать отладки  
 
 // Обработка кнопок
@@ -298,33 +304,70 @@ if(MenuLayer==-1){
     else{OneRazMLayerMin1=false;} 
   // Обработка входа в главное меню
 
-    if(IntelligentMode == false){ //Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
+    if(IntelligentMode == false){ //!! Возможно не соответствует ТЗ! Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
         Povorotniki(); // Функция обрабатывает нажание на кнопки право и лево и включает выключает поворотники.
     }                             //Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
 
   // Измеряем время нажатия правой или левой кнопки для входа для включения автоматического режима
+// /*
   if(AutomaticMode == 1 ){ // Если из настроек мы получили разрешение активировать автоматический режим
-      static unsigned long timingPressButton;
-      if( (digitalRead(RightButtonPin)==HIGH) || (digitalRead(LeftButtonPin)==LOW) ){ 
-          if (millis() - timingPressButton > 3000){ // Вместо 500 подставьте нужное вам значение паузы 
-              Serial.println ("AutomaticMode == true");  
-              AutomaticModeActivateR=true; //Включение автоматического режима (Если в булях выставлено On)
+      static unsigned long timingPressButtonR;
+      static unsigned long timingPressButtonL;
+      if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
+          if (millis() - timingPressButtonR > 2000){ // Вместо 500 подставьте нужное вам значение паузы 
+              Serial.println ("AutomaticModeActivateR == true");  
+              AutomaticModeActivateR=true; //Включение автоматического режима правого поворотника(Если в булях выставлено On)
           }
       }
-      if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){
-          timingPressButton = millis();
+      if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
+          if (millis() - timingPressButtonL > 2000){ // Вместо 500 подставьте нужное вам значение паузы 
+              Serial.println ("AutomaticModeActivateL == true");  
+              AutomaticModeActivateL=true; //Включение автоматического режима левого поворотника(Если в булях выставлено On)
+          }
       }
-      if(AutomaticModeActivateR == true ) {//Если исполняется автоматический режим правого или левого поворота
-          //Если нажата кнопка вправо или влево
-          if( digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW ){  //Есл в авто режиме при правом моргании нажата кнопка вправо
-              AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
-          }
-          if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==HIGH ){  //Есл в авто режиме при правом моргании нажата кнопка влево
-              AutomaticModeActivateL = true; // Включить автоматический режим левого поворотника
-          }
 
+      if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
+      static int8_t OldPositionRightCount;    
+      
+      if(AutomaticModeActivateR == true ) {//Если исполняется автоматический режим правого поворота
+          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
+          if(OneRazSavePRK_GE == false){
+              OldPositionRightCount = PositionRightCount;
+              OneRazSavePRK_GE = true;     
+          }    
+          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
+              Serial.print("PositionRightCount: ");Serial.print(PositionRightCount);Serial.print("OldPositionRightCount: ");Serial.println(OldPositionRightCount);
+              if(PositionRightCount > OldPositionRightCount){
+                  AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
+                  OneRazSavePRK_GE = false;
+              }
+              if(PositionRightCount < OldPositionRightCount){
+                  AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
+                  AutomaticModeActivateL = true; // Включить автоматический режим левого поворотника
+                  OneRazSavePRK_GE = false;
+              }
       }
+      if(AutomaticModeActivateL == true ) {//Если исполняется автоматический режим правого поворота
+          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
+          if(OneRazSavePRK_GE2L == false){
+              OldPositionRightCount = PositionRightCount;
+              OneRazSavePRK_GE2L = true;     
+          }    
+          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
+              Serial.print("PositionRightCount: ");Serial.print(PositionRightCount);Serial.print("OldPositionRightCount: ");Serial.println(OldPositionRightCount);
+              if(PositionRightCount > OldPositionRightCount){
+                  AutomaticModeActivateL = false; // Отключить автоматический режим правого поворотника
+                  OneRazSavePRK_GE2L = false;
+              }
+              if(PositionRightCount < OldPositionRightCount){
+                  AutomaticModeActivateL = false; // Отключить автоматический режим правого поворотника
+                  AutomaticModeActivateR = true; // Включить автоматический режим левого поворотника
+                  OneRazSavePRK_GE2L = false;
+              }
+      }
+
   }                 // Если из настроек мы получили разрешение активировать автоматический режим
+    
   // Измеряем время нажатия правой или левой кнопки для входа для включения автоматического режима
 }
 // Главный экран
@@ -419,11 +462,12 @@ if(MenuLayer == 12){
 
 
 if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
-    static int8_t CountStepTiming=0;// Перебор пунктиков
-    static unsigned long timingRightBlink101; // Используется для таймера моргания правого поворотника
+     
+    static unsigned long timingLeftRightBlink101; // Используется для таймера моргания правого поворотника
     static bool PovorotnikiOn;
      /*
-    Serial.print(" timingRightBlink101:" );Serial.print(timingRightBlink101 );
+    Serial.print("PositionRightCount:" );Serial.print(PositionRightCount );
+    Serial.print(" timingLeftRightBlink101:" );Serial.print(timingLeftRightBlink101 );
     Serial.print(" PovorotnikiOn:" );Serial.print(PovorotnikiOn);
     Serial.print(" CountStepTiming:" );Serial.print(CountStepTiming);
     Serial.print(" change101:" );Serial.print(change101);
@@ -449,66 +493,77 @@ if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
        // <- Лич
        //Если значение изменилось то 500миллисек пауза, затем 2 секунды моргают с заданной скоростью левый и правый поворотник
    
-       if(change101 == true){ // Если в менюшке 101 нажата кнопка вверх или вниз
+       if(change101 == true){ // Если в менюшке 101 нажата кнопка вверх или вниз. Или кнопка вправо (с моментами)
+          
           //static unsigned long timing101;  //для задержки в 500 мсек в 1.1 (101)
-          if(CountStepTiming == 0){ //Пауза в 0.5 сек
-              if (millis() - timing101 > 500){ // Вместо 500 подставьте нужное вам значение паузы 
-                  Serial.println ("1 seconds Prostoi. Next");
+          if(CountStepTiming == 0){ //Пауза в 0.5 сек перед тем как начать моргать
+              PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
+             
+              if (millis() - timing101 > 800){ // Если прошла секунда то увеличить счётчик и начать моргать
+                  //Serial.println ("1 seconds Prostoi. Next");
                   timing101=millis();
                   CountStepTiming=1;
               }
           }
           if(CountStepTiming == 1){ // Исполнить 2 сек (Само моргание - Демонстрация скорости)
-              RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
+              
               // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
                   uint16_t TempInvertVal;// = SpeedPovorotnikBlink*100;
-                  if(SpeedPovorotnikBlink <= 20){
-                     TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250);
-                  }
-                  if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink<=30 ){
-                     TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162);
-                  }
-                  //TempInvertVal= map( SpeedPovorotnikBlink,10,30,500,125); // Изменяем чтоб при увеличении значения чаще моргал поворотник
-                  Serial.print("MAP TempInvertVal:");Serial.println(TempInvertVal);
+                  if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }
+                  if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
+                  //Serial.print("MAP TempInvertVal:");Serial.println(TempInvertVal);
               // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
 
-              if (millis() - timingRightBlink101 >= TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
+              if (millis() - timingLeftRightBlink101 >= TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
                   PovorotnikiOn = !PovorotnikiOn;
-                  timingRightBlink101 = millis(); 
+                  timingLeftRightBlink101 = millis(); 
               }
               if(PovorotnikiOn == true){ // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                      for(int i=0;  i<13;++i) {strip.SetPixelColor(i, color);}   strip.Show(); // Зажечь левый поворотник
-                      for(int i=13; i<26;++i) {strip.SetPixelColor(i, color);}   strip.Show(); // Зажечь правый поворотник
-              }                           // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
+                  RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
+                  for(int i=0;  i<26;++i) {strip.SetPixelColor(i, color);}   strip.Show();// Зажечь левый правый поворотник
+              }                          // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
               else{                       // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ
                     PovorotnikiRightOff(); // turn off the pixels
                     PovorotnikiLeftOff(); // turn off the pixels
                   }
-              if (millis() - timing101 > 2000){
-                  Serial.println ("2 seconds Proslo");
-                  PovorotnikiRightOff();
-                  PovorotnikiLeftOff(); // turn off the pixels
+              if (millis() - timing101 > 4000){  //Время сколько происходит моргание 
+                  //Serial.println ("4 seconds Proslo");
+                  
+                  PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
                   CountStepTiming = 0;
-                  change101 = false;
+                  change101 = false; //Перезаряд
                   PovorotnikiOn=0;
-                  timing101=millis();
+                  //timing101=millis();
               } // Исполнить 2 секунды и прервать
-          }       
+          }
+                 
          // /*
                  
-       }
+       } // Если в менюшке 101 нажата кнопка вверх или вниз
+       static bool SaveOk101=false; // Для того чтоб убрать глюк ленты при использовании EEPROM
        // <- Лич
        if(PositionRightCount ==3){ // save
           //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
-          EEPROM.writeByte(15, SpeedPovorotnikBlink); EEPROM.commit();
+          //EEPROM.writeByte(15, SpeedPovorotnikBlink); EEPROM.commit();
           saveBlink_sensOnValue1_1=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
           saveBlink1_1=true; // Чтобы моргала надпись save
           PositionRightCount =2; // Вернуть ползунок по горизонтали
+
+          SaveOk101 = true;
+          if(change101 == false){ // Чтоб не перезапускало моргание если уже моргает
+            CountStepTiming=0;
+            change101=true;timing101 = millis();
+          }
        }
        if(PositionRightCount ==1){ // back
-
-       if(saveBlink_sensOnValue1_1 != true){SpeedPovorotnikBlink=old_SpeedPovorotnikBlink; }
-       MenuLayer=10;PositionUpCount=50;
+          if(saveBlink_sensOnValue1_1 != true){SpeedPovorotnikBlink=old_SpeedPovorotnikBlink; }
+          if(SaveOk101 == true){ EEPROM.writeByte(15, SpeedPovorotnikBlink); EEPROM.commit(); SaveOk101 = false; }
+          // Чтоб если мы выходим на моменте когда лента в демонстрации горит
+          PovorotnikiRightOff(); // turn off the pixels
+          PovorotnikiLeftOff(); // turn off the pixels
+          CountStepTiming=0;
+          change101=false;timing101 = millis();
+          MenuLayer=10;PositionUpCount=50;
        }
 }
 if(MenuLayer == 102){ // 1.2

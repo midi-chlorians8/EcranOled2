@@ -36,13 +36,15 @@ void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,uns
 */
         
         if(buttonPin == RightButtonPin){
-            if(MenuLayer != -1){
+            
                 PositionRightCount++; //Ползунок по горизонатали
-            }
+            
         }
 
         if(buttonPin == LeftButtonPin){
-         PositionRightCount--; //Ползунок по горизонатали
+            //if(MenuLayer != -1){
+                PositionRightCount--; //Ползунок по горизонатали
+            //}
         }      
         // Ограничения
             
