@@ -139,15 +139,15 @@ void Povorotniki(){
     static bool OneRazSavePRKOld_IntMode;
 
     static bool test;
-    static bool RightPressedInt=false;
-    static bool LeftPressedInt=true;
+    static bool RightInt=false;
+    static bool LeftInt=false;
 
     Serial.print(" PositionRightCount:" );Serial.print(PositionRightCount);
     Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
     Serial.print(" OneRazSavePRKOld_IntMode:" );Serial.print(OneRazSavePRKOld_IntMode );
     Serial.print(" test:" );Serial.print(test );
-Serial.print(" RightPressedInt:" );Serial.print(RightPressedInt );
-Serial.print(" LeftPressedInt:" );Serial.print(LeftPressedInt );
+Serial.print(" RightInt:" );Serial.print(RightInt );
+Serial.print(" LeftInt:" );Serial.print(LeftInt );
 
     Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL);
     Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
@@ -161,84 +161,81 @@ Serial.print(" LeftPressedInt:" );Serial.print(LeftPressedInt );
               
             if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
                 //if (millis() - timingPressButtonR > 50 ){ // Вместо 500 подставьте нужное вам значение паузы 
-                    Serial.println ("IntModeActivateR == true");  
+                    //Serial.println ("IntModeActivateR == true");  
                     //LeftPressedInt=false;
-                    RightPressedInt=true;
+                    RightInt=true;
+
+            LeftInt=false; 
                     // beginIntModeBlinkR=true; //Включение автоматического режима правого поворотника(Если в булях выставлено On)
                     
                 //}
             }
             // /*
             if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
-                if (millis() - timingPressButtonL > 500 ){ // Вместо 500 подставьте нужное вам значение паузы 
-                    Serial.println ("IntModeActivateL == true");  
-                    LeftPressedInt=true;
-                    
-                }
+                //if (millis() - timingPressButtonL > 500 ){ // Вместо 500 подставьте нужное вам значение паузы 
+                    //Serial.println ("IntModeActivateL == true");  
+                    LeftInt=true;         
+
+                    RightInt    =false;
+                //}
             }
             // */
       
-            if(RightPressedInt == true ) {//Если исполняется автоматический режим правого поворота
+            if(RightInt == true ) {//Если исполняется автоматический режим правого поворота
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния              
                
                 if(PositionRightCount > OldPositionRightCountInt){
                     beginIntModeBlinkR = !beginIntModeBlinkR;
-                    OneRazSavePRKOld_IntMode=false;
-                    RightPressedInt=false;
+                    beginIntModeBlinkL= false;
+                    //OneRazSavePRKOld_IntMode=false;
+                    
+                   // RightPressedInt=false;
                 }
                
                 if(PositionRightCount < OldPositionRightCountInt){
                     if(beginIntModeBlinkR == 1){
                         beginIntModeBlinkR = !beginIntModeBlinkR;
-                        
+                        //LeftInt=true;
+                        RightInt=false;
                     }
-                    OldPositionRightCountInt = PositionRightCount;
-                    
-                        //beginIntModeBlinkR = false; // Отключить автоматический режим правого поворотника
-                        //beginIntModeBlinkL = true; // Включить автоматический режим левого поворотника
-                        //OneRazSavePRKOld_IntMode = false;
+                    //OldPositionRightCountInt = PositionRightCount;
+
                 }
-               
+                OldPositionRightCountInt = PositionRightCount;
+                
+               /*
                 if(OneRazSavePRKOld_IntMode == false){
                     OldPositionRightCountInt = PositionRightCount;
                    
                     OneRazSavePRKOld_IntMode = true;     
-                    RightPressedInt=false;
+                    
                 }    
+                */
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния
                    
             }
-/*
-            if(LeftPressedInt == true ) {//Если исполняется автоматический режим правого поворота
+///*
+            if(LeftInt == true ) {//Если исполняется автоматический режим правого поворота
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния              
                
                 if(PositionRightCount < OldPositionRightCountInt){
-                    // beginIntModeBlinkR = false; // Отключить автоматический режим правого поворотника                
-                        //OneRazSavePRK_GE = false;
-                        beginIntModeBlinkL = !beginIntModeBlinkL;
-                    OneRazSavePRKOld_IntMode=false;
+                        beginIntModeBlinkL = !beginIntModeBlinkL; 
+                        beginIntModeBlinkR = false;
                 }
                
                 if(PositionRightCount > OldPositionRightCountInt){
                     if(beginIntModeBlinkL == 1){
-                        beginIntModeBlinkL = !beginIntModeBlinkL;
-                        
-                    }
-                    OldPositionRightCountInt = PositionRightCount;
-                        //beginIntModeBlinkR = false; // Отключить автоматический режим правого поворотника
-                        //beginIntModeBlinkL = true; // Включить автоматический режим левого поворотника
-                        //OneRazSavePRKOld_IntMode = false;
+                        beginIntModeBlinkL = false;//!beginIntModeBlinkL;
+                        LeftInt=false;
+                        //RightInt=true;
+                    }   
                 }
-               
-                if(OneRazSavePRKOld_IntMode == false){
-                    OldPositionRightCountInt = PositionRightCount;
-                    OneRazSavePRKOld_IntMode = true;     
-                    LeftPressedInt=false;
-                }    
+                OldPositionRightCountInt = PositionRightCount;
+              
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния
                    
             }
-           */
+           //*/
            /*
             if(beginIntModeBlinkL == true ) {//Если исполняется автоматический режим правого поворота
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния
