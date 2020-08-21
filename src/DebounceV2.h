@@ -19,7 +19,7 @@ void DebounceV2(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
                 bool& OneRazFirstTimePressed,unsigned long& TimePressed,unsigned long& FirstTimePressed){
 
   bool reading = digitalRead(buttonPin);
-
+  //static int8_t CountStepTiming;
   if(digitalRead(buttonPin)==1){    
     // Один раз замерять стартовое время
     if(OneRazFirstTimePressed == false){
@@ -49,7 +49,7 @@ void DebounceV2(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
              // PositionUpCount++; //Ползунок по вертикали
             MinusUP=false;
             
-            CountStepTiming=0;
+            //CountStepTiming=0;
             change101=true;timing101 = millis(); // Флаг что кнопка нажата и значение изменилось
         }
         if(buttonPin == 4){
@@ -57,7 +57,7 @@ void DebounceV2(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
             //PositionUpCount--; //Ползунок по горизонатали
             MinusUP=false;
             
-            CountStepTiming=0;
+            //CountStepTim1ing=0;
             change101=true;timing101 = millis();
         }
 

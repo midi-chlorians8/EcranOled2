@@ -1,11 +1,13 @@
 
 
 #include <Arduino.h>
-#include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
 
+
+#include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
+#include "DebounceV2.h" // Обработка вертикальных кнопок
 int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
 
-#include "DebounceV2.h" // Обработка вертикальных кнопок
+
 bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
 
 // Переменные для того чтоб в 101 при переборе значения поворотники моргали
@@ -201,7 +203,7 @@ bool AutomaticMode;          // 1.4
 int8_t TimePressToOnAutoMode;// 1.5
 
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
-
+#include "GlobalPrint.h"
 void setup(void) {
   Serial.begin(115200);
   u8g2.begin();
@@ -255,21 +257,9 @@ void loop(void) {
 while(1){
 
 // Печать отладки
-/*
-{
-Serial.print(" MenuLayer:" );Serial.print(MenuLayer );
-Serial.print(" PositionUpCount:" );   Serial.print(PositionUpCount );
-Serial.print(" PositionRightCount:" );Serial.print(PositionRightCount );
-Serial.print(" timingOffPovorotniki:" );Serial.print(timingOffPovorotniki );
-Serial.print(" OffPovorotniki:" );Serial.print(OffPovorotniki );
-//Serial.print(" millis() - timingOffPovorotniki:" );Serial.print(millis() - timingOffPovorotniki );
-Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR );
-
-Serial.print(" AutomaticMode:" );Serial.print(AutomaticMode);
-Serial.print(" CountStepTiming:" );Serial.print(CountStepTiming );
-Serial.println();
-}
-*/
+// /*
+//GlobalPrint();
+// */
 // Печать отладки  
 
 // Обработка кнопок
@@ -293,81 +283,24 @@ if(MenuLayer==-1){
         }
         // Один раз замерять текущее время
 
-        // Если текущее время - замерянное больше 2х секунд. То войти в меню
+        // Если текущее время - замерянное больше 2х секунд. То войти в меню 
         if(millis() - FirstZamerMLayerMin1_Val >1200){
-            //Serial.print("OneRazMLayerMin1:");Serial.print(OneRazMLayerMin1); Serial.print(" FirstZamerMLayerMin1_Val:");Serial.println(FirstZamerMLayerMin1_Val);
             MenuLayer=0;PositionUpCount=1;PositionRightCount=0; // Войти в меню
-           // OffPovorotniki = true; //Выставить флаг погасить поворотник при входе в меню
+            // OffPovorotniki = true; //Выставить флаг погасить поворотник при входе в меню
         }
         // Если текущее время - замерянное больше 2х секунд. То войти в меню
     }
     else{OneRazMLayerMin1=false;} 
   // Обработка входа в главное меню
-
+/*
     if(IntelligentMode == false){ //!! Возможно не соответствует ТЗ! Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
-        Povorotniki(); // Функция обрабатывает нажание на кнопки право и лево и включает выключает поворотники.
+        
     }                             //Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
-
+    */
+Povorotniki(); // Функция обрабатывает нажание на кнопки право и лево и включает выключает поворотники.
   // Измеряем время нажатия правой или левой кнопки для входа для включения автоматического режима
 // /*
-  if(AutomaticMode == 1 ){ // Если из настроек мы получили разрешение активировать автоматический режим
-      static unsigned long timingPressButtonR;
-      static unsigned long timingPressButtonL;
-      if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
-          if (millis() - timingPressButtonR > 2000){ // Вместо 500 подставьте нужное вам значение паузы 
-              Serial.println ("AutomaticModeActivateR == true");  
-              AutomaticModeActivateR=true; //Включение автоматического режима правого поворотника(Если в булях выставлено On)
-          }
-      }
-      if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
-          if (millis() - timingPressButtonL > 2000){ // Вместо 500 подставьте нужное вам значение паузы 
-              Serial.println ("AutomaticModeActivateL == true");  
-              AutomaticModeActivateL=true; //Включение автоматического режима левого поворотника(Если в булях выставлено On)
-          }
-      }
-
-      if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
-      static int8_t OldPositionRightCount;    
-      
-      if(AutomaticModeActivateR == true ) {//Если исполняется автоматический режим правого поворота
-          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-          if(OneRazSavePRK_GE == false){
-              OldPositionRightCount = PositionRightCount;
-              OneRazSavePRK_GE = true;     
-          }    
-          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-              Serial.print("PositionRightCount: ");Serial.print(PositionRightCount);Serial.print("OldPositionRightCount: ");Serial.println(OldPositionRightCount);
-              if(PositionRightCount > OldPositionRightCount){
-                  AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
-                  OneRazSavePRK_GE = false;
-              }
-              if(PositionRightCount < OldPositionRightCount){
-                  AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
-                  AutomaticModeActivateL = true; // Включить автоматический режим левого поворотника
-                  OneRazSavePRK_GE = false;
-              }
-      }
-      if(AutomaticModeActivateL == true ) {//Если исполняется автоматический режим правого поворота
-          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-          if(OneRazSavePRK_GE2L == false){
-              OldPositionRightCount = PositionRightCount;
-              OneRazSavePRK_GE2L = true;     
-          }    
-          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-              Serial.print("PositionRightCount: ");Serial.print(PositionRightCount);Serial.print("OldPositionRightCount: ");Serial.println(OldPositionRightCount);
-              if(PositionRightCount > OldPositionRightCount){
-                  AutomaticModeActivateL = false; // Отключить автоматический режим правого поворотника
-                  OneRazSavePRK_GE2L = false;
-              }
-              if(PositionRightCount < OldPositionRightCount){
-                  AutomaticModeActivateL = false; // Отключить автоматический режим правого поворотника
-                  AutomaticModeActivateR = true; // Включить автоматический режим левого поворотника
-                  OneRazSavePRK_GE2L = false;
-              }
-      }
-
-  }                 // Если из настроек мы получили разрешение активировать автоматический режим
-    
+   
   // Измеряем время нажатия правой или левой кнопки для входа для включения автоматического режима
 }
 // Главный экран
@@ -396,8 +329,10 @@ if(MenuLayer==0 || MenuLayer==1){
   if(PositionUpCount==6){   CirclY = 18; MenuLayer=1;  
                             if(PositionRightCount == 1) {PositionRightCount=0;} // Заглушка
                         }
-  if(PositionUpCount==7){   CirclY = 28; MenuLayer=1;  
-                            if( PositionRightCount == 1){ MenuLayer=-1; OffPovorotniki = true;timingOffPovorotniki=millis(); } // Выключить поворотники при выходе из меню
+  if(PositionUpCount==7){   CirclY = 28; MenuLayer=1;  // exit
+                            if( PositionRightCount == 1){ 
+                              MenuLayer=-1; OffPovorotniki = true; timingOffPovorotniki=millis(); 
+                            } // Выключить поворотники при выходе из меню
                         }
                          
   
@@ -2110,7 +2045,7 @@ if(MenuLayer == 3021){ // 3.21
     u8g2.sendBuffer();          // transfer internal memory to the display 
   }
   
-  if (MenuLayer == 301 ) { // 3.1
+  if (MenuLayer == 301 )  { // 3.1
     
       if(saveBlink3_1==false){
           u8g2.clearBuffer();          // clear the internal memory
@@ -2181,7 +2116,7 @@ if(MenuLayer == 3021){ // 3.21
           SaveBlink3_11();
       }  
   }
-  if (MenuLayer == 302 ) { // 3.2
+  if (MenuLayer == 302 )  { // 3.2
       if(saveBlink3_2==false){
           u8g2.clearBuffer();          // clear the internal memory
   

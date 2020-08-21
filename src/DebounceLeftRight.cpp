@@ -47,8 +47,9 @@ void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,uns
             //}
         }      
         // Ограничения
-            
-        PositionRightCount=constrain(PositionRightCount,0,25); //Ограничил щелчки влево. Чуствуется в корне меню
+          if(MenuLayer!= -1){  
+              PositionRightCount=constrain(PositionRightCount,0,25); //Ограничил щелчки влево. Чуствуется в корне меню
+          }
         // Ограничения
         
       }
