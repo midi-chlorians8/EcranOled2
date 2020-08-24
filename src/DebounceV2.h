@@ -44,12 +44,9 @@ void DebounceV2(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
 
       if (buttonState == HIGH) {
         
-//        ledState = !ledState;
         if(buttonPin == 2){          
              // PositionUpCount++; //Ползунок по вертикали
             MinusUP=false;
-            
-            //CountStepTiming=0;
             change101=true;timing101 = millis(); // Флаг что кнопка нажата и значение изменилось
         }
         if(buttonPin == 4){

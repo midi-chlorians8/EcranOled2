@@ -1,7 +1,7 @@
 
 
 #include <Arduino.h>
-
+bool RightInt=false;
 
 #include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
 #include "DebounceV2.h" // Обработка вертикальных кнопок
@@ -258,7 +258,7 @@ while(1){
 
 // Печать отладки
 // /*
-//GlobalPrint();
+// GlobalPrint();
 // */
 // Печать отладки  
 
@@ -307,6 +307,10 @@ Povorotniki(); // Функция обрабатывает нажание на к
 
 // Ползаем по главному меню
 if(MenuLayer==0 || MenuLayer==1){
+  RightInt=false; // Cкидываем чтоб после того как выходим из меню в главный экран не включался правый поворотник
+  PovorotnikiRightOff(); PovorotnikiLeftOff();           //Защита от загорания при переходе в главное меню из int mode
+  beginIntModeBlinkR = false; beginIntModeBlinkL = false;//Защита от загорания при переходе в главное меню из int mode
+  
   //PovorotOnRight=false; // Чтоб при выходе из меню в главный экран не загорался поворотник
   if(PositionUpCount == 0){PositionUpCount = 7;} // Ограничить вертикальный ползунок при движении вверх
   if(PositionUpCount > 7){PositionUpCount = 7;} // Ограничить вертикальный ползунок при движении вниз
@@ -527,7 +531,6 @@ if(MenuLayer == 102){ // 1.2
 if(MenuLayer == 103){ // 1.3 CountBlinkIntMode
     if(OneRazPosition1_3==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
        old_CountBlinkIntMode = CountBlinkIntMode;
-       //PositionUpCount=old_PositionUpCount2_4;
        
        // Исполнить один раз чтоб галочка соответствовала значению      
         PositionUpCount=map(CountBlinkIntMode,0,30,-180,-210);
