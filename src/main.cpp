@@ -433,13 +433,14 @@ if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
        //Если значение изменилось то 500миллисек пауза, затем 2 секунды моргают с заданной скоростью левый и правый поворотник
    
        if(change101 == true){ // Если в менюшке 101 нажата кнопка вверх или вниз. Или кнопка вправо (с моментами)
+          if(digitalRead(4)==true || digitalRead(2)==true ){ CountStepTiming = 0; } //Если в любой момент нажата кнопка вверх или вниз то гасимся и ждём секунду
           
           //static unsigned long timing101;  //для задержки в 500 мсек в 1.1 (101)
           if(CountStepTiming == 0){ //Пауза в 0.5 сек перед тем как начать моргать
               PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
              
-              if (millis() - timing101 > 800){ // Если прошла секунда то увеличить счётчик и начать моргать
-                  //Serial.println ("1 seconds Prostoi. Next");
+              if (millis() - timing101 > 1000){ // Если прошла секунда то увеличить счётчик и начать моргать
+                  Serial.println ("1 seconds Prostoi. Next");
                   timing101=millis();
                   CountStepTiming=1;
               }

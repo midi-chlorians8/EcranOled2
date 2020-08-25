@@ -168,6 +168,7 @@ void Povorotniki(){
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)  
               
             if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){LeftInt=false;RightInt=true; } //Если зажата правая кнопка и не зажата левая
+            
             if( ( (digitalRead(LeftButtonPin)==HIGH) && digitalRead(RightButtonPin)==LOW)){LeftInt=true; RightInt=false; } //Если зажата левая кнопка и не зажата правая
       
             if(RightInt == true ) {//Если исполняется автоматический режим правого поворота
@@ -206,13 +207,19 @@ void Povorotniki(){
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния
                    
             }
-            /*
-            Serial.print(" RightInt:" );Serial.print(RightInt);
+            // /*
             Serial.print(" LeftInt:" ); Serial.print(LeftInt );
-            Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
+            Serial.print(" RightInt:" );Serial.print(RightInt);
+            
             Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL );
+            Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
+            
+            Serial.print(" EndedR:" );Serial.print(EndedR );
+
+            Serial.print(" PositionRightCount:" );      Serial.print(PositionRightCount );
+            Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
             Serial.println();
-            */
+             // */
             //Для правого поворота intellingent 
             static int8_t CountBlinkOnIntModeR; //Cчётчик морганий фактических правого поворотника            
 
@@ -259,6 +266,7 @@ void Povorotniki(){
                     //}
                 }                              //New Если включен автомат режим то убираем быстрое моргание при отпускании
             }           // Если буль морганий правый инт отключен
+            /*
              Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
                 Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR );
                 Serial.print(" PovorotOnRight:" );Serial.print(PovorotOnRight);
@@ -267,6 +275,7 @@ void Povorotniki(){
                 Serial.print(" EndedR:" );Serial.print(EndedR );
                 Serial.print(" KIF_AvailableR:" );Serial.print(KIF_AvailableR );
                 Serial.println();
+            */
             //Для правого поворота intellingent 
         
                 
@@ -465,7 +474,7 @@ void Povorotniki(){
             if (millis() - timingRightBlink > TempInvertVal ){PovorotOnRight = !PovorotOnRight;timingRightBlink = millis(); } // Таймер отсчёта включения и выключения правого поворотника
                 
             // Блинкер
-            if(PovorotOnRight == true){for(int i=0; i<13;++i){strip.SetPixelColor(i, color);strip.Show();}    }        // Если включен по таймеру буль светится правому поворотнику то зажечься правому ЖЁЛТОМУ                          
+            if(PovorotOnRight == true){for(int i=0; i<13;++i){strip.SetPixelColor(i, color);} strip.Show();   }        // Если включен по таймеру буль светится правому поворотнику то зажечься правому ЖЁЛТОМУ                          
             else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
             // Блинкер
             KIF_AvailableR = true;

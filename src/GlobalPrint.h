@@ -12,7 +12,7 @@ Serial.print(" OffPovorotniki:" );Serial.print(OffPovorotniki );
 Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR );
 
 //Serial.print(" PovorotOnRight:" );Serial.print(PovorotOnRight);
-Serial.print(" SpeedPovorotnikBlink:" );Serial.print(SpeedPovorotnikBlink );
+Serial.print(" CountStepTiming:" );Serial.print(CountStepTiming );
 Serial.println();
 }
 
