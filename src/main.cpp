@@ -440,7 +440,7 @@ if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
               PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
              
               if (millis() - timing101 > 1000){ // Если прошла секунда то увеличить счётчик и начать моргать
-                  Serial.println ("1 seconds Prostoi. Next");
+                  Serial.println ("0.5 seconds Prostoi. Next");
                   timing101=millis();
                   CountStepTiming=1;
               }

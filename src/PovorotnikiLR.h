@@ -149,9 +149,11 @@ void Povorotniki(){
     static int8_t OldPositionRightCountInt=1;
     //static bool OneRazSavePRKOld_IntMode;
     static bool EndedL=true; // Для интеллигент режима. Если мы прервали пока он не доморгал то чтоб с этого момента моргал заданное кол-во раз
-    static bool EndedR=true;
+    static bool EndedR=false;
  
     static bool LeftInt=false;
+    static int8_t CountBlinkOnIntModeR;//Cчётчик морганий фактических правого поворотника
+
 /*
     Serial.print(" PositionRightCount:" );Serial.print(PositionRightCount);
     Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
@@ -162,14 +164,35 @@ void Povorotniki(){
 
     Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL);
     Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
-    Serial.println();
+    Serial.println(); 
     */
     if(IntelligentMode == 1 ){
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)  
-              
-            if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){LeftInt=false;RightInt=true; } //Если зажата правая кнопка и не зажата левая
+
+            if(PositionRightCount > OldPositionRightCountInt ){ if(EndedR!=true)    { beginIntModeBlinkR=true;} }    // Право ON Серелина Off Off Лево On
+            if(PositionRightCount == OldPositionRightCountInt){ beginIntModeBlinkR=false;beginIntModeBlinkL=false;}    
+            if(PositionRightCount < OldPositionRightCountInt ){ beginIntModeBlinkL=true;}
+                
+            if(PositionRightCount-OldPositionRightCountInt >0  ){
+               if(PositionRightCount-OldPositionRightCountInt>=2){
+                   Serial.println("R");
+                   OldPositionRightCountInt++;EndedR=false;
+                   CountBlinkOnIntModeR=0; //Cбросить счётчик если уже моргает
+               } 
+            }
+            if(PositionRightCount-OldPositionRightCountInt <0  ){
+                if(PositionRightCount-OldPositionRightCountInt<=-2){
+                    Serial.println("L");
+                    OldPositionRightCountInt--;
+                }
+            }
+            // /*
             
-            if( ( (digitalRead(LeftButtonPin)==HIGH) && digitalRead(RightButtonPin)==LOW)){LeftInt=true; RightInt=false; } //Если зажата левая кнопка и не зажата правая
+            // */
+            /*  
+            if( (digitalRead(RightButtonPin)==HIGH) && digitalRead(LeftButtonPin)==LOW) {LeftInt=false;RightInt=true; } //Если зажата правая кнопка и не зажата левая
+            
+            if( ( digitalRead(LeftButtonPin)==HIGH) && digitalRead(RightButtonPin)==LOW)  {LeftInt=true; RightInt=false; } //Если зажата левая кнопка и не зажата правая
       
             if(RightInt == true ) {//Если исполняется автоматический режим правого поворота
 
@@ -207,7 +230,8 @@ void Povorotniki(){
                 // Один раз сохранить значение правого ползунка в переменную прошлого состояния
                    
             }
-            // /*
+            */
+             /*
             Serial.print(" LeftInt:" ); Serial.print(LeftInt );
             Serial.print(" RightInt:" );Serial.print(RightInt);
             
@@ -219,13 +243,25 @@ void Povorotniki(){
             Serial.print(" PositionRightCount:" );      Serial.print(PositionRightCount );
             Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
             Serial.println();
-             // */
+              */
+             // /*
             //Для правого поворота intellingent 
-            static int8_t CountBlinkOnIntModeR; //Cчётчик морганий фактических правого поворотника            
+                          
+            Serial.print(" PositionRightCount:" );      Serial.print(PositionRightCount );
+            Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
 
+            Serial.print(" beginIntModeBlinkL:" );      Serial.print(beginIntModeBlinkL );
+            Serial.print(" beginIntModeBlinkR:" );      Serial.print(beginIntModeBlinkR );
+
+            Serial.print(" CountBlinkOnIntModeR:" );      Serial.print(CountBlinkOnIntModeR );
+            Serial.print(" CountBlinkIntMode:" );      Serial.print(CountBlinkIntMode );
+            
+            Serial.print(" EndedR:" );      Serial.print(EndedR );
+
+            Serial.println();
             if(beginIntModeBlinkR == true ) { //Если исполняется интеллигент режим правого поворота
                 beginIntModeBlinkL = false; PovorotnikiLeftOff(); // Если моргает право - молчит лево)
-                EndedR=false; // Ставим буль в положение Незавершено ( Нет нужного кол-ва морганий)          
+                //EndedR=false; // Ставим буль в положение Незавершено ( Нет нужного кол-ва морганий)          
                 //KillIntFromAuto=false; // Отключаем запрет обнулений счётчика морганий в старте цикла
                 RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
@@ -266,18 +302,9 @@ void Povorotniki(){
                     //}
                 }                              //New Если включен автомат режим то убираем быстрое моргание при отпускании
             }           // Если буль морганий правый инт отключен
-            /*
-             Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
-                Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR );
-                Serial.print(" PovorotOnRight:" );Serial.print(PovorotOnRight);
-                Serial.print(" CountBlinkOnIntModeR:" );Serial.print(CountBlinkOnIntModeR );
-                Serial.print(" SpeedPovorotnikBlink:" );Serial.print(SpeedPovorotnikBlink );
-                Serial.print(" EndedR:" );Serial.print(EndedR );
-                Serial.print(" KIF_AvailableR:" );Serial.print(KIF_AvailableR );
-                Serial.println();
-            */
+ 
             //Для правого поворота intellingent 
-        
+        /*
                 
 
             //Для левого поворота intellingent
@@ -319,6 +346,7 @@ void Povorotniki(){
                     PovorotOnLeft=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света                 
                 }
             }
+            */
             /*
             Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL );
                 Serial.print(" AutomaticModeActivateL:" );Serial.print(AutomaticModeActivateL );
