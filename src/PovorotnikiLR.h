@@ -40,6 +40,9 @@ extern bool OffPovorotniki; // Буль отключающий поворотн�
 unsigned long timingOffPovorotniki; // Время которое не горят поворотники после выхода из главного экрана
 extern bool RightInt;
 
+//bool KillIntFromAuto; // Буль призван при прерывании авто режима сразу выключить поворотник
+bool KIF_AvailableR; //Для выключения автоматического режима (резко) работающего после int
+bool KIF_AvailableL; //Для выключения автоматического режима (резко) работающего после int
 void PovorotnikiRightOff(); // Прототип функции выключения поворотника правого
 void PovorotnikiLeftOff();  // Прототип функции выключения поворотника левого
 void Povorotniki(){
@@ -147,7 +150,6 @@ void Povorotniki(){
     //static bool OneRazSavePRKOld_IntMode;
     static bool EndedL=true; // Для интеллигент режима. Если мы прервали пока он не доморгал то чтоб с этого момента моргал заданное кол-во раз
     static bool EndedR=true;
-    //static bool test;
  
     static bool LeftInt=false;
 /*
@@ -166,7 +168,6 @@ void Povorotniki(){
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)  
               
             if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){LeftInt=false;RightInt=true; } //Если зажата правая кнопка и не зажата левая
-         
             if( ( (digitalRead(LeftButtonPin)==HIGH) && digitalRead(RightButtonPin)==LOW)){LeftInt=true; RightInt=false; } //Если зажата левая кнопка и не зажата правая
       
             if(RightInt == true ) {//Если исполняется автоматический режим правого поворота
@@ -216,14 +217,13 @@ void Povorotniki(){
             static int8_t CountBlinkOnIntModeR; //Cчётчик морганий фактических правого поворотника            
 
             if(beginIntModeBlinkR == true ) { //Если исполняется интеллигент режим правого поворота
-                beginIntModeBlinkL = false; PovorotnikiLeftOff();
-                EndedR=false;           
+                beginIntModeBlinkL = false; PovorotnikiLeftOff(); // Если моргает право - молчит лево)
+                EndedR=false; // Ставим буль в положение Незавершено ( Нет нужного кол-ва морганий)          
+                //KillIntFromAuto=false; // Отключаем запрет обнулений счётчика морганий в старте цикла
                 RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-                uint16_t TempInvertVal;
-                if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }
-                if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
+                uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
                
                 if (millis() - timingRightBlink > TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
@@ -231,7 +231,7 @@ void Povorotniki(){
                     CountBlinkOnIntModeR++;//Serial.println(CountBlinkOnIntModeR);  
                     timingRightBlink = millis(); 
                 }
-
+               
                 // Сам блинкер
                 if(PovorotOnRight == true){ for(int i=0; i<13;++i){strip.SetPixelColor(i, color); }  strip.Show();} // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
                 else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
@@ -239,59 +239,54 @@ void Povorotniki(){
 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 if(CountBlinkIntMode%2 != 0){ // Если заданное число из меню не чётное 
-                    if ( (CountBlinkOnIntModeR) == (CountBlinkIntMode*2)-1 ){ CountBlinkOnIntModeR = 0;beginIntModeBlinkR = false; EndedR=true;Serial.println("NotEnded=true");}
+                    if ( (CountBlinkOnIntModeR) == (CountBlinkIntMode*2)-1 ){ beginIntModeBlinkR = false; EndedR=true;Serial.println("Ended=true");}
                 }
                 else{  // Если число чётное
-                    if ( (CountBlinkOnIntModeR) == (CountBlinkIntMode*2)-1 ){ CountBlinkOnIntModeR = 0;beginIntModeBlinkR = false; EndedR=true;Serial.println("NotEnded=true");}    
+                    if ( (CountBlinkOnIntModeR) == (CountBlinkIntMode*2)-1 ){ beginIntModeBlinkR = false; EndedR=true;Serial.println("Ended=true");}    
                 }      // Если число чётное
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 
             }
-            else{                          // Если буль морганий правый отключен
-                if(EndedR==false){
-                    beginIntModeBlinkR=1;
-                    timingRightBlink = millis();
-                    EndedR =true;
-                }    
-                    
-                timingRightBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света
-                // Желательно исполнить один раз
-                CountBlinkOnIntModeR=0;
-                PovorotOnRight=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света             
-                // Желательно исполнить один раз
-            }
+            else{       // Если буль морганий правый инт отключен
+              if(AutomaticModeActivateR != true){ //New Если включен автомат режим то управление процессом моргания передаётся авто режиму
+                    if(EndedR==false){ beginIntModeBlinkR=1; }  //Если прервано раньше времени то перезапуск режима моргания                
+                                    
+                    timingRightBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света и нужно кол-во раз
+                    PovorotOnRight=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света   
+                    //if(KillIntFromAuto != true){    
+                        //Serial.println("!");                                                                                                                    // Желательно исполнить один раз
+                    CountBlinkOnIntModeR=0; // Cброс кол-ва морганий. Перезаряд                       
+                    //}
+                }                              //New Если включен автомат режим то убираем быстрое моргание при отпускании
+            }           // Если буль морганий правый инт отключен
+             Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
+                Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR );
+                Serial.print(" PovorotOnRight:" );Serial.print(PovorotOnRight);
+                Serial.print(" CountBlinkOnIntModeR:" );Serial.print(CountBlinkOnIntModeR );
+                Serial.print(" SpeedPovorotnikBlink:" );Serial.print(SpeedPovorotnikBlink );
+                Serial.print(" EndedR:" );Serial.print(EndedR );
+                Serial.print(" KIF_AvailableR:" );Serial.print(KIF_AvailableR );
+                Serial.println();
             //Для правого поворота intellingent 
-            
-            //Serial.print("CountBlinkOnIntModeR:");Serial.print(CountBlinkOnIntModeR);Serial.print(" NotEnded:");Serial.print(EndedR); Serial.print(" beginIntModeBlinkR:");Serial.println(beginIntModeBlinkR);
-
-
-
-
-
+        
+                
 
             //Для левого поворота intellingent
             static int8_t CountBlinkOnIntModeL; //Cчётчик морганий фактических левого поворотника
+            
             if(beginIntModeBlinkL == true ) { //Если исполняется интеллигент режим правого поворота           
                beginIntModeBlinkR = false; PovorotnikiRightOff();
                 EndedL=false;   
                 RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-                uint16_t TempInvertVal;
-                if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }
-                if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
+                uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-
-                if (millis() - timingLeftBlink > TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
-                    PovorotOnLeft = !PovorotOnLeft;
-                    CountBlinkOnIntModeL++;Serial.println(CountBlinkOnIntModeL);  
-                    timingLeftBlink = millis(); 
-                }
- 
+                
+                if (millis() - timingLeftBlink > TempInvertVal ){PovorotOnLeft = !PovorotOnLeft;CountBlinkOnIntModeL++;Serial.println(CountBlinkOnIntModeL);timingLeftBlink = millis();} // Таймер отсчёта включения и выключения правого поворотника
+                          
                 // Сам блинкер
-                if(PovorotOnLeft == true){ // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                    for(int i=13; i<26;++i){strip.SetPixelColor(i, color); }  strip.Show();
-                }
+                if(PovorotOnLeft == true){for(int i=13; i<26;++i){strip.SetPixelColor(i, color); }  strip.Show();  }// Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ   
                 else{  PovorotnikiLeftOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
                 // Сам блинкер
 
@@ -306,44 +301,27 @@ void Povorotniki(){
                 
             }
             else{                          // Если кнопка право отпущена
-/*              
-                timingLeftBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света
-                // Желательно исполнить один раз
-                CountBlinkOnIntModeL=0;
-                PovorotOnLeft=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света             
-                PovorotnikiLeftOff();     // Если кнопка право отпущена // Один раз отключить правый поворотник
-                // Желательно исполнить один раз
-*/
-                if(EndedL==false){
-                    beginIntModeBlinkL=1;
-                    timingRightBlink = millis();
-                    EndedL =true;
-                }    
+                if(AutomaticModeActivateL != true){ 
+                    if(EndedL==false){ beginIntModeBlinkL=1; }  //Если прервано раньше времени то перезапуск режима моргания                
                     
-                timingLeftBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света
-                // Желательно исполнить один раз
-                CountBlinkOnIntModeL=0;
-                PovorotOnLeft=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света             
-                // Желательно исполнить один раз
+                    timingLeftBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света
+                
+                    CountBlinkOnIntModeL=0;
+                    PovorotOnLeft=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света                 
+                }
             }
+            /*
+            Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL );
+                Serial.print(" AutomaticModeActivateL:" );Serial.print(AutomaticModeActivateL );
+                Serial.print(" PovorotOnRightL:" );Serial.print(PovorotOnLeft);
+                Serial.print(" CountBlinkOnIntModeL:" );Serial.print(CountBlinkOnIntModeL );
+                Serial.print(" SpeedPovorotnikBlink:" );Serial.print(SpeedPovorotnikBlink );
+                Serial.print(" EndedL:" );Serial.print(EndedL );
+                Serial.print(" KIF_AvailableL:" );Serial.print(KIF_AvailableL );
+                Serial.println();
+                */
             //Для левого поворота intellingent 
             
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -481,26 +459,35 @@ void Povorotniki(){
         RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-            uint16_t TempInvertVal;
-            if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }
-            if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
+            uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250);if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); } }       
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
 
-            if (millis() - timingRightBlink > TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
-                PovorotOnRight = !PovorotOnRight;
-                timingRightBlink = millis(); 
-            }
+            if (millis() - timingRightBlink > TempInvertVal ){PovorotOnRight = !PovorotOnRight;timingRightBlink = millis(); } // Таймер отсчёта включения и выключения правого поворотника
+                
             // Блинкер
-            if(PovorotOnRight == true){ // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                for(int i=0; i<13;++i){strip.SetPixelColor(i, color); } //Вправо
-                 strip.Show();              
-            }
+            if(PovorotOnRight == true){for(int i=0; i<13;++i){strip.SetPixelColor(i, color);strip.Show();}    }        // Если включен по таймеру буль светится правому поворотнику то зажечься правому ЖЁЛТОМУ                          
             else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
             // Блинкер
+            KIF_AvailableR = true;
         }
-        //else{
+        else{
+            if(IntelligentMode == 1){ //Если мы рубанули автомат режим из интеллигента
+                //Надо сразу погасить
+               if(KIF_AvailableR==true){
+                   //KillIntFromAuto=true;
+                   PovorotnikiRightOff();
+                   //AutomaticModeActivateR=false;
+                   beginIntModeBlinkR = false; EndedR=true; 
+
+                   KIF_AvailableR = false;
+               
+                   
+                   } //Один раз отключить правый поворотник и  автоманическую правую моргалку
+                   
+                 // Препятствует сбросу счётчика для прав поворот инт мод. Включить ток после запуска автомат реж
+            }
             //PovorotnikiRightOff();
-        //}
+        }
         // Правый 
 
         // Левый
@@ -517,18 +504,29 @@ void Povorotniki(){
                 PovorotOnLeft = !PovorotOnLeft;
                 timingLeftBlink = millis(); 
             }
-        Serial.print("TempInvertVal: ");Serial.print(TempInvertVal);
-        Serial.print("PovorotOnLeft: ");Serial.print(PovorotOnLeft);
-        Serial.print("AutomaticModeActivateL: ");Serial.println(AutomaticModeActivateL);
+        //Serial.print("TempInvertVal: ");Serial.print(TempInvertVal);
+        //Serial.print("PovorotOnLeft: ");Serial.print(PovorotOnLeft);
+        //Serial.print("AutomaticModeActivateL: ");Serial.println(AutomaticModeActivateL);
 
             // Блинкер
-            if(PovorotOnLeft == true){ // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                for(int i=13; i<26;++i){strip.SetPixelColor(i, color); } //Влево
-                 strip.Show();              
-            }
+            if(PovorotOnLeft == true){for(int i=13; i<26;++i){strip.SetPixelColor(i, color); }strip.Show();}    // Если включен по таймеру буль светится  //Влево поворотнику то зажечься ЖЁЛТОМУ    
             else{  PovorotnikiLeftOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
             // Блинкер
-
+            KIF_AvailableL = true;
+        }
+        else{
+            if(IntelligentMode == 1){ //Если мы рубанули автомат режим из интеллигента
+                //Надо сразу погасить
+               if(KIF_AvailableL==true){
+                   //KillIntFromAuto=true;
+                   PovorotnikiLeftOff();
+                   //AutomaticModeActivateL=false;
+                   beginIntModeBlinkL = false; EndedL=true; 
+                   //beginIntModeBlinkL=false;
+                   KIF_AvailableL = false;} //Один раз отключить правый поворотник и  автоманическую правую моргалку
+                 // Препятствует сбросу счётчика для прав поворот инт мод. Включить ток после запуска автомат реж
+            }
+            //PovorotnikiRightOff();
         }
         // Левый
 
