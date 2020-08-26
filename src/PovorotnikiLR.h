@@ -241,51 +241,7 @@ if(Stop == false){
                     PovorotOnLeft=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света  
                 }
             }
-            // /*
-            
-            // */
-            /*  
-            if( (digitalRead(RightButtonPin)==HIGH) && digitalRead(LeftButtonPin)==LOW) {LeftInt=false;RightInt=true; } //Если зажата правая кнопка и не зажата левая
-            
-            if( ( digitalRead(LeftButtonPin)==HIGH) && digitalRead(RightButtonPin)==LOW)  {LeftInt=true; RightInt=false; } //Если зажата левая кнопка и не зажата правая
-      
-            if(RightInt == true ) {//Если исполняется автоматический режим правого поворота
-
-                // Один раз сохранить значение правого ползунка в переменную прошлого состояния              
-                if(PositionRightCount > OldPositionRightCountInt){
-                    beginIntModeBlinkR = !beginIntModeBlinkR;
-                    beginIntModeBlinkL= false;
-                }
-               
-                if(PositionRightCount < OldPositionRightCountInt){
-                    if(beginIntModeBlinkR == 1){
-                        beginIntModeBlinkR = !beginIntModeBlinkR;
-                        RightInt=false;
-                    }
-                }
-                OldPositionRightCountInt = PositionRightCount;    
-                // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-                   
-            }
-            if(LeftInt  == true ) {//Если исполняется автоматический режим правого поворота
-
-                // Один раз сохранить значение правого ползунка в переменную прошлого состояния                             
-                if(PositionRightCount < OldPositionRightCountInt){
-                        beginIntModeBlinkL = !beginIntModeBlinkL; 
-                        beginIntModeBlinkR = false;
-                }
-               
-                if(PositionRightCount > OldPositionRightCountInt){
-                    if(beginIntModeBlinkL == 1){
-                        beginIntModeBlinkL = false;//!beginIntModeBlinkL;
-                        LeftInt=false;
-                    }   
-                }
-                OldPositionRightCountInt = PositionRightCount;
-                // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-                   
-            }
-            */
+    
             
              // /*
             //Для правого поворота intellingent 
@@ -306,11 +262,10 @@ if(Stop == false){
          //   Serial.print(" AutomaticModeActivateL:" );      Serial.print(AutomaticModeActivateL );
           //  Serial.print(" AutomaticModeActivateR:" );      Serial.print(AutomaticModeActivateR );
             
-            Serial.println();
+            //Serial.println();
             if(beginIntModeBlinkR == true ) { //Если исполняется интеллигент режим правого поворота
                 //beginIntModeBlinkL = false; PovorotnikiLeftOff(); // Если моргает право - молчит лево)
                 EndedR=false; // Ставим буль в положение Незавершено ( Нет нужного кол-ва морганий)          
-                //KillIntFromAuto=false; // Отключаем запрет обнулений счётчика морганий в старте цикла
                 RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
@@ -329,21 +284,19 @@ if(Stop == false){
                 // Сам блинкер
 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
-                    if ( (CountBlinkOnIntModeR) == (CountBlinkIntMode*2)+1 ){ 
-                        beginIntModeBlinkR = false; EndedR=true;Serial.println("EndedR=true");PositionRightCount = OldPositionRightCountInt;PovorotOnRight=true;} 
+                    if ( (CountBlinkOnIntModeR) >= (CountBlinkIntMode*2)+1 ){ 
+                            beginIntModeBlinkR = false; EndedR=true;//Serial.println("EndedR=true"); //PositionRightCount = OldPositionRightCountInt; 
+                            //PovorotOnRight=true;               
+                      if (digitalRead(RightButtonPin) ==LOW){PositionRightCount = OldPositionRightCountInt;PovorotOnRight=true;}  //Только когда мы отпускаем кнопку  
+                    } 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 
             }
-            else{       // Если буль морганий правый инт отключен
-                   
-            }           // Если буль морганий правый инт отключен
-
+         
             //Для правого поворота intellingent 
-       
-                
-// /*
+ 
+
             //Для левого поворота intellingent
-            
             
             if(beginIntModeBlinkL == true ) { //Если исполняется интеллигент режим правого поворота           
                //beginIntModeBlinkR = false; PovorotnikiRightOff();
@@ -362,8 +315,12 @@ if(Stop == false){
                 // Сам блинкер
 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
-                      if ( (CountBlinkOnIntModeL) == (CountBlinkIntMode*2)+1  ){ 
-                        beginIntModeBlinkL = false; EndedL=true;Serial.println("EndedL=true");PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;} 
+                      if ( (CountBlinkOnIntModeL) >= (CountBlinkIntMode*2)+1  ){ 
+                        beginIntModeBlinkL = false; EndedL=true;
+                        //Serial.println("EndedL=true");PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;
+                        if (digitalRead(LeftButtonPin) ==LOW){PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;}  //Только когда мы отпускаем кнопку 
+                        }
+                         
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 
             }
