@@ -336,6 +336,7 @@ if(MenuLayer==0 || MenuLayer==1){
   if(PositionUpCount==7){   CirclY = 28; MenuLayer=1;  // exit
                             if( PositionRightCount == 1){ 
                               MenuLayer=-1; OffPovorotniki = true; timingOffPovorotniki=millis(); 
+                              PovorotOnRight=true;
                             } // Выключить поворотники при выходе из меню
                         }
                          
