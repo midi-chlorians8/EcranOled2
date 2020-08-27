@@ -33,6 +33,7 @@ void SaveBlink1_2();
 void SaveBlink1_3(); 
 void SaveBlink1_4(); 
 void SaveBlink1_5(); 
+void SaveBlink1_6();
 void SaveBlink2_1();
 void SaveBlink2_2();
 void SaveBlink2_3();
@@ -89,6 +90,11 @@ int16_t old_TimePressToOnAutoMode; // Старое значение
 int16_t old_PositionUpCount1_5;
 bool OneRazPosition1_5 = false; // Один раз завести правильное значение из меню
 bool saveBlink_sensOnValue1_5 = false;
+
+bool OneRazPosition1_6=false; 
+bool OneRazGalochka1_6=false; // Используется для того чтоб галочка ставилась напротив текущего значения
+bool saveBlink1_6=false;
+bool saveBlink_sensOnValue1_6=false;
 // Переменные для вкладки 1
 
 // Переменные для вкладки 2
@@ -202,6 +208,7 @@ int8_t CountBlinkIntMode;    // 1.3
 bool AutomaticMode;          // 1.4 
 int8_t TimePressToOnAutoMode;// 1.5
 
+bool EnterOnTheAutoMode;     // 1.6
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
 #include "GlobalPrint.h"
 void setup(void) {
@@ -248,6 +255,7 @@ void setup(void) {
   AutomaticMode         =EEPROM.readByte(18);
   TimePressToOnAutoMode =EEPROM.readByte(19);
 
+  EnterOnTheAutoMode =EEPROM.readBool(20);
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);
@@ -258,7 +266,7 @@ while(1){
 
 // Печать отладки
 // /*
- GlobalPrint();
+// GlobalPrint();
 // */
 // Печать отладки  
 
@@ -347,7 +355,9 @@ if(MenuLayer==0 || MenuLayer==1){
 
 // Перебираем вкладку 1
 if(MenuLayer == 10){
-  if(PositionUpCount < 50){PositionUpCount = 50;} // Ограничить вертикальный ползунок при движении вверх
+  //if(PositionUpCount < 50){PositionUpCount = 50;} // Ограничить вертикальный ползунок при движении вверх
+  if(PositionUpCount == 49){PositionUpCount = 55;MenuLayer=12;} // Ограничить вертикальный ползунок при движении вверх
+
 
   if(PositionUpCount==50){   CirclY = 20-1;   }
   if(PositionUpCount==51){   CirclY = 32+13;  }
@@ -388,17 +398,22 @@ if(MenuLayer == 11){
 }
 if(MenuLayer == 12){
   if(PositionUpCount==54){  CirclY = 10-1;  }
-  
+  if(PositionUpCount==55){  CirclY = 22+13; }
+
   if(PositionRightCount == 2 && PositionUpCount==54){ MenuLayer=105; PositionUpCount=180; }//Если курсор первая строка и есть нажатие вправо - перейти в 1.1
-  
+  if(PositionRightCount == 2 && PositionUpCount==55){ MenuLayer=106; PositionUpCount=120; }
+
   if(PositionRightCount == 0){ //Если в подменю 0.2 Нажата кнопка влево то выйти в главное меню
       MenuLayer=0;PositionUpCount=1;
   }
-  if(PositionUpCount==53)   { MenuLayer=11;  }   //При скролле вверх перейти на верхнюю часть страницы
-  if(PositionUpCount > 54)  { PositionUpCount=54;  }   //Ограничить ползунок вниз
+  if(PositionUpCount==53)   { MenuLayer=11; }   //При скролле вверх перейти на верхнюю часть страницы
+  if(PositionUpCount > 55)  { PositionUpCount=55;  }   //Ограничить ползунок вниз
 
   OneRazPosition1_5 = false;
   saveBlink_sensOnValue1_5=false;
+
+  saveBlink_sensOnValue1_6=false;
+  OneRazGalochka1_6=false;
 }
 
 
@@ -624,6 +639,26 @@ if(MenuLayer == 105){ // 1.5 TimePressToOnAutoMode
 
       MenuLayer=12;PositionUpCount=54;
     }
+}
+if(MenuLayer == 106){ // 1.6
+    if(PositionRightCount ==1){ // back
+        MenuLayer=12;PositionUpCount=55;
+    }
+    if(PositionRightCount ==3){ // save
+
+        if(PositionUpCount ==120){
+          EnterOnTheAutoMode=true;
+        }
+        if(PositionUpCount ==121){
+          EnterOnTheAutoMode=false;
+        }
+        //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+        EEPROM.writeBool(20, EnterOnTheAutoMode); EEPROM.commit();
+
+        saveBlink1_6=true;
+        PositionRightCount =2;
+    }
+    
 }
 // Перебираем вкладку 1
 
@@ -1342,10 +1377,15 @@ if(MenuLayer == 3021){ // 3.21
                             u8g2.setCursor(95,12);  
                             u8g2.print(float(TimePressToOnAutoMode)/10 ,1);
     u8g2.drawStr(0, 22, "To On Auto Mode"); // write something to the internal
-    /*
+    
     u8g2.drawLine(0,27, 105, 27);
 
-    //u8g2.drawStr(0, 32+17, "1.2 PodPunkt menu");
+    u8g2.drawStr(0, 39, "1.6 How start");
+    if(EnterOnTheAutoMode == true){      u8g2.drawStr(95, 39, "P");   }
+    else                     {      u8g2.drawStr(95, 39, "D");  }
+    u8g2.drawStr(0, 32+17, "Automatic mode");
+    
+    /*
     u8g2.drawStr(0, 39, "1.4 Automatic");
     if(AutomaticMode == true){      u8g2.drawStr(95, 39, "On");   }
     else                     {      u8g2.drawStr(95, 39, "Off");  }
@@ -1523,6 +1563,51 @@ if(MenuLayer == 3021){ // 3.21
           SaveBlink1_5();
       }  
   }
+  if (MenuLayer == 106 ) { // 1.4
+      if(saveBlink1_6==false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(0, 7,   "1.6 How Start Automatic Mode"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(5, 25-3, "Pressed Time");  u8g2.drawStr(5, 40-3, "Double click");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka1_6==false){
+              if(EnterOnTheAutoMode==true) { PositionUpCount=120; }
+              if(EnterOnTheAutoMode==false){ PositionUpCount=121; }
+          OneRazGalochka1_6=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(105,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(105,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+          SaveBlink1_6();       
+      }
+      PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
+  }
+
+
+
+
+
+
+
+
+
+
+
   if (MenuLayer == 20 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -2049,8 +2134,7 @@ if(MenuLayer == 3021){ // 3.21
     
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
-  }
-  
+  }  
   if (MenuLayer == 301 )  { // 3.1
     
       if(saveBlink3_1==false){
@@ -2532,6 +2616,74 @@ void SaveBlink1_5(){ // Анимация моргания слова save в п�
           u8g2.sendBuffer();          // transfer internal memory to the display
           saveBlink1_5=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
           counterSaveBlink1_5=0;
+   }
+          
+}
+void SaveBlink1_6(){ // Анимация моргания слова save в подпункте 1.4
+  static int8_t counterSaveBlink1_6;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink1_6++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink1_6 == 1){
+      u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(0, 7,   "1.6 How Start Automatic Mode"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(5, 25-3, "Pressed Time");  u8g2.drawStr(5, 40-3, "Double click");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka1_6==false){
+              if(AutomaticMode==true) { PositionUpCount=120; }
+              if(AutomaticMode==false){ PositionUpCount=121; }
+          OneRazGalochka1_6=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(105,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(105,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+          
+   if(counterSaveBlink1_6 == 2){
+      u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(0, 7,   "1.6 How Start Automatic Mode"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(5, 25-3, "Pressed Time");  u8g2.drawStr(5, 40-3, "Double click");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka1_6==false){
+              if(AutomaticMode==true) { PositionUpCount=120; }
+              if(AutomaticMode==false){ PositionUpCount=121; }
+          OneRazGalochka1_6=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(105,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(105,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+          saveBlink1_6=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink1_6=0;
    }
           
 }

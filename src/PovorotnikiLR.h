@@ -86,6 +86,11 @@ void Povorotniki(){
     if (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==HIGH ){ 
         PovorotnikiRightOff(); PovorotnikiLeftOff();
         beginIntModeBlinkR = false; beginIntModeBlinkL = false;
+        PositionRightCount =0;     // Cравнять и обнулить. Нужно когда моргает Int mode и в это время попытка есть входа в меню
+        OldPositionRightCountInt=0;// Cравнять и обнулить. Нужно когда моргает Int mode и в это время попытка есть входа в меню
+
+        AutomaticModeActivateR=0; //Чтоб при работе автомат режима и входе в меню не было мерцания
+        AutomaticModeActivateL=0; //Чтоб при работе автомат режима и входе в меню не было мерцания
      } //Чтоб при нажатии 2х кнопок не светило  // Один раз отключить правый поворотник
 
         // ============================================          Часть Простое нажатие клавиш        ============================================ 
@@ -296,7 +301,7 @@ if(Stop == false){
                         beginIntModeBlinkL = false; EndedL=true;
                         //Serial.println("EndedL=true");PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;
                         if (digitalRead(LeftButtonPin) ==LOW){PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;}  //Только когда мы отпускаем кнопку 
-                        }
+                      }
                          
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 
@@ -322,10 +327,12 @@ if(Stop == false){
     // ============================================          Часть автоматический режим         ============================================ 
    // /*
   
-   Serial.println();
+   //Serial.println();
     if(AutomaticMode == 1 ){ // Если из настроек мы получили разрешение активировать автоматический режим
-     if(IntelligentMode != 1){ //Если сейчас не интеллигент режим
+     if(IntelligentMode != 1){ // ==0 //Если сейчас не интеллигент режим
       if(OffPovorotniki == false){
+      /*    
+      // Захвата автоматического режима по времени удержания кнопки
       if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
           if (millis() - timingPressButtonR > (TimePressToOnAutoMode*100) ){ // Вместо 500 подставьте нужное вам значение паузы 
               Serial.println ("AutomaticModeActivateR == true");  
@@ -338,8 +345,90 @@ if(Stop == false){
               AutomaticModeActivateL=true; //Включение автоматического режима левого поворотника(Если в булях выставлено On)
           }
       }
+     // Захвата автоматического режима по времени удержания кнопки
+    */
+    // Захвата автоматического режима по двойному нажатию кнопки
+    static unsigned long TimeDoublePressed;
+    static unsigned long TimeDoublePressed2;
+    static int8_t DoublePressedStep=1;
 
-if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
+if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
+    if(DoublePressedStep==1){
+        TimeDoublePressed=millis();
+        DoublePressedStep=2;
+    }
+    if(DoublePressedStep==3){
+        TimeDoublePressed2=millis();
+        DoublePressedStep=4;
+    }
+    
+}
+if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата левая кнопка и не зажата правая
+    if(DoublePressedStep==2){
+        DoublePressedStep=3;
+    }
+    if(DoublePressedStep==4){
+        // <
+        if(TimeDoublePressed2>TimeDoublePressed){
+            if((TimeDoublePressed2-TimeDoublePressed)<600){        
+                Serial.println("                                                                                                                                    Double click");
+                //TimeDoublePressed=0;
+                //TimeDoublePressed2=0;
+            }
+        }
+        // /*
+        if(TimeDoublePressed2<TimeDoublePressed){
+            if((TimeDoublePressed-TimeDoublePressed2)<600){
+                Serial.println("                                                                                                                                    Double click");
+                //TimeDoublePressed=0;
+                //TimeDoublePressed2=0;
+            }
+        }   
+        // */ 
+        // <
+        DoublePressedStep=1;
+    }
+}
+
+    /*
+    if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
+        if(DoublePressedStep==1){
+            TimeDoublePressed=millis();
+            DoublePressedStep = 2;
+        }    
+        if(DoublePressedStep==3){
+            if ((millis()-TimeDoublePressed) < 600){
+                Serial.println("                                                                                            Double click");
+                DoublePressedStep = 1;
+            }
+            else{
+                DoublePressedStep = 1;Serial.println("                                                                                      %");
+                TimeDoublePressed=millis();
+            }
+        }
+    }
+
+    if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата левая кнопка и не зажата правая
+        if(DoublePressedStep==2){
+            DoublePressedStep=3;
+        }
+    }    
+    */
+    // /*
+    Serial.print(" TimeDoublePressedStep:" );Serial.print(DoublePressedStep);   
+    Serial.print(" TimeDoublePressed:" );Serial.print(TimeDoublePressed);
+    Serial.print(" TimeDoublePressed2:" );Serial.print(TimeDoublePressed2);
+    if(TimeDoublePressed2>TimeDoublePressed){
+        Serial.print(" TimeDoublePressed2-TimeDoublePressed " );Serial.print( TimeDoublePressed2-TimeDoublePressed );
+    }
+    if(TimeDoublePressed2<TimeDoublePressed){
+        Serial.print(" TimeDoublePressed-TimeDoublePressed2 " );Serial.print( TimeDoublePressed-TimeDoublePressed2 );
+    }
+    Serial.println();
+    // */
+    // Захвата автоматического режима по двойному нажатию кнопки
+
+    if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
         /*
         static int8_t OldPositionRightCountAuto;
         // Один раз присвоить значение текущего ползунка право
@@ -481,6 +570,7 @@ if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timi
     Serial.print(" PovorotOnRight:");Serial.print(PovorotOnRight);
     */
     //Serial.println();
+    /*
      Serial.print(" PositionRightCount:" );      Serial.print(PositionRightCount );
             Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
 
@@ -496,6 +586,7 @@ if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timi
             Serial.print(" PovorotOnLeft:" );      Serial.print(PovorotOnLeft ); 
             
             //Serial.print(" OffPovorotniki:" );      Serial.print(OffPovorotniki );
+            */
 }
  
 
