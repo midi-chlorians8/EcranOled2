@@ -1,4 +1,4 @@
-//26.08
+//27.08
 
 #include <Arduino.h>
 bool RightInt=false;
@@ -258,7 +258,7 @@ while(1){
 
 // Печать отладки
 // /*
-// GlobalPrint();
+ GlobalPrint();
 // */
 // Печать отладки  
 
@@ -337,6 +337,7 @@ if(MenuLayer==0 || MenuLayer==1){
                             if( PositionRightCount == 1){ 
                               MenuLayer=-1; OffPovorotniki = true; timingOffPovorotniki=millis(); 
                               PovorotOnRight=true;
+                              PositionRightCount = OldPositionRightCountInt; // Чтоб убрать баги с морганием при выходе из меню интеллигент режим
                             } // Выключить поворотники при выходе из меню
                         }
                          

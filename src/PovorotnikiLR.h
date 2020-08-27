@@ -59,6 +59,7 @@ unsigned long timingMozjnoBlinkR; // Для таймера в режиме об�
 int8_t OldPositionRightCount; // Для автомат режима
 
 bool Stop=false;
+int8_t OldPositionRightCountInt=1; // Для интеллект режима прошлая позиция ползунка
 void PovorotnikiRightOff(); // Прототип функции выключения поворотника правого
 void PovorotnikiLeftOff();  // Прототип функции выключения поворотника левого
 void Povorotniki(){
@@ -191,7 +192,7 @@ if(Stop == false){
         // ============================================          Часть Простое нажатие клавиш        ============================================ 
 
     // ============================================          Часть Интеллигент режим         ============================================ 
-    static int8_t OldPositionRightCountInt=1;
+    //static 
     //static bool OneRazSavePRKOld_IntMode;
     static bool EndedL=false; // Для интеллигент режима. Если мы прервали пока он не доморгал то чтоб с этого момента моргал заданное кол-во раз
     static bool EndedR=false;
@@ -199,18 +200,7 @@ if(Stop == false){
     static bool LeftInt=false;
     static int8_t CountBlinkOnIntModeR;//Cчётчик морганий фактических правого поворотника
     static int8_t CountBlinkOnIntModeL; //Cчётчик морганий фактических левого поворотника
-/*
-    Serial.print(" PositionRightCount:" );Serial.print(PositionRightCount);
-    Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
-    Serial.print(" OneRazSavePRKOld_IntMode:" );Serial.print(OneRazSavePRKOld_IntMode );
-    Serial.print(" test:" );Serial.print(test );
-    Serial.print(" RightInt:" );Serial.print(RightInt );
-    Serial.print(" LeftInt:" );Serial.print(LeftInt );
 
-    Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL);
-    Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
-    Serial.println(); 
-    */
     if(IntelligentMode == 1 ){
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)  
 
@@ -246,20 +236,7 @@ if(Stop == false){
              // /*
             //Для правого поворота intellingent 
                           
-            Serial.print(" PositionRightCount:" );      Serial.print(PositionRightCount );
-            Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
-
-            Serial.print(" begIntModeBlinkL:" );      Serial.print(beginIntModeBlinkL );
-            Serial.print(" begIntModeBlinkR:" );      Serial.print(beginIntModeBlinkR );
-
-            Serial.print(" CountBlinkOnIntModeR:" );      Serial.print(CountBlinkOnIntModeR );
-            Serial.print(" CountBlinkOnIntModeL:" );      Serial.print(CountBlinkOnIntModeL );
-            
-            Serial.print(" EndedR:" );      Serial.print(EndedR ); 
-            Serial.print(" PovorotOnRight:" );      Serial.print(PovorotOnRight );
-            Serial.print(" PovorotOnLeft:" );      Serial.print(PovorotOnLeft ); 
-            
-         //   Serial.print(" AutomaticModeActivateL:" );      Serial.print(AutomaticModeActivateL );
+           
           //  Serial.print(" AutomaticModeActivateR:" );      Serial.print(AutomaticModeActivateR );
             
             //Serial.println();
@@ -504,6 +481,21 @@ if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timi
     Serial.print(" PovorotOnRight:");Serial.print(PovorotOnRight);
     */
     //Serial.println();
+     Serial.print(" PositionRightCount:" );      Serial.print(PositionRightCount );
+            Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt );
+
+            Serial.print(" begIntModeBlinkL:" );      Serial.print(beginIntModeBlinkL );
+            Serial.print(" begIntModeBlinkR:" );      Serial.print(beginIntModeBlinkR );
+
+            Serial.print(" CountBlinkOnIntModeR:" );      Serial.print(CountBlinkOnIntModeR );
+            Serial.print(" CountBlinkOnIntModeL:" );      Serial.print(CountBlinkOnIntModeL );
+            
+            Serial.print(" EndedR:" );      Serial.print(EndedR ); 
+            Serial.print(" EndedL:" );      Serial.print(EndedL ); 
+            Serial.print(" PovorotOnRight:" );      Serial.print(PovorotOnRight );
+            Serial.print(" PovorotOnLeft:" );      Serial.print(PovorotOnLeft ); 
+            
+            //Serial.print(" OffPovorotniki:" );      Serial.print(OffPovorotniki );
 }
  
 
