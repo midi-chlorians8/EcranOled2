@@ -45,11 +45,10 @@ extern bool OffPovorotniki; // Буль отключающий поворотн�
 unsigned long timingOffPovorotniki; // Время которое не горят поворотники после выхода из главного экрана
 extern bool RightInt;
 
-//bool KillIntFromAuto; // Буль призван при прерывании авто режима сразу выключить поворотник
 bool KIF_AvailableR; //Для выключения автоматического режима (резко) работающего после int
 bool KIF_AvailableL; //Для выключения автоматического режима (резко) работающего после int
 
-//bool OneRazAutoSetPolzunokR; // В режиме авто один раз присвоить положение правого ползунка в старое значение. Для того чтоб при авто моргании право нажатие влево просто отключило режим.
+//bool OneRazAutoSetPolzunokR; // В режиме авто один раз присвоить положение правого ползунка в старое значение. Для того чтоб при авто моргании право нажатие влево просто отключило режим
 bool OKlightFromAutoTomanualL =false; //Когда работает правый поворотник
 unsigned long timingMozjnoBlinkL; // Для таймера в режиме обычного нажатия клавишь. Связано с режимом авто и кнопкой отмены в обратную сторону
 
@@ -64,6 +63,7 @@ bool Stop=false;
 int8_t OldPositionRightCountInt=1; // Для интеллект режима прошлая позиция ползунка
 
 extern bool EnterOnTheAutoMode;
+ int8_t CountBlinkOnIntModeR;//Cчётчик морганий фактических правого поворотника
 void PovorotnikiRightOff(); // Прототип функции выключения поворотника правого
 void PovorotnikiLeftOff();  // Прототип функции выключения поворотника левого
 void Povorotniki(){
@@ -111,9 +111,6 @@ void Povorotniki(){
  }
 
 
- 
-    
-   
 if(Stop == false){
     if(IntelligentMode == 0){ // Если intelligentmode выключен
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)
@@ -203,16 +200,23 @@ if(Stop == false){
     static bool EndedR=false;
  
     static bool LeftInt=false;
-    static int8_t CountBlinkOnIntModeR;//Cчётчик морганий фактических правого поворотника
+    
     static int8_t CountBlinkOnIntModeL; //Cчётчик морганий фактических левого поворотника
-
+    static bool HelloFromAutoMode=false;
     if(IntelligentMode == 1 ){
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)  
-
-            if(PositionRightCount > OldPositionRightCountInt ){ beginIntModeBlinkR=true;}    // Право ON Серелина Off Off Лево On
+            if(HelloFromAutoMode==true){ // Буль включается после завершения работы автоматического режима AutomaticModeActivateR
+                 OldPositionRightCountInt=PositionRightCount; 
+                 HelloFromAutoMode=false;
+            }
+            if(PositionRightCount > OldPositionRightCountInt ){
+                 //if(AutomaticModeActivateR ==false){ //Авто мод лич
+                    beginIntModeBlinkR=true;
+                 //}                                  //Авто мод лич
+            }    // Право ON Серелина Off Off Лево On
             if(PositionRightCount == OldPositionRightCountInt){ 
-                beginIntModeBlinkR=false;beginIntModeBlinkL=false;PovorotnikiRightOff();CountBlinkOnIntModeR=0;
-                beginIntModeBlinkL=false;PovorotnikiLeftOff();CountBlinkOnIntModeL=0;
+                beginIntModeBlinkR=false;PovorotnikiRightOff();CountBlinkOnIntModeR=0;
+                beginIntModeBlinkL=false;PovorotnikiLeftOff(); CountBlinkOnIntModeL=0;
                 }    
             if(PositionRightCount < OldPositionRightCountInt ){ beginIntModeBlinkL=true;}
                 
@@ -222,8 +226,8 @@ if(Stop == false){
                    OldPositionRightCountInt++;//EndedR=false;
                    CountBlinkOnIntModeR=0; //Cбросить счётчик если уже моргает
 
-                    timingRightBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света и нужно кол-во раз
-                    PovorotOnRight=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света  
+                   timingRightBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света и нужно кол-во раз
+                   PovorotOnRight=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света  
                } 
             }
             if(PositionRightCount-OldPositionRightCountInt <0  ){
@@ -237,23 +241,17 @@ if(Stop == false){
                 }
             }
     
-            
-             // /*
-            //Для правого поворота intellingent 
-                          
-           
-          //  Serial.print(" AutomaticModeActivateR:" );      Serial.print(AutomaticModeActivateR );
-            
-            //Serial.println();
+            //Для правого поворота intellingent                          
             if(beginIntModeBlinkR == true ) { //Если исполняется интеллигент режим правого поворота
-                //beginIntModeBlinkL = false; PovorotnikiLeftOff(); // Если моргает право - молчит лево)
+            
                 EndedR=false; // Ставим буль в положение Незавершено ( Нет нужного кол-ва морганий)          
                 RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
                 uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-               
+                if(AutomaticModeActivateR==false){ //Авто лич
+
                 if (millis() - timingRightBlink > TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
                     PovorotOnRight = !PovorotOnRight;
                     CountBlinkOnIntModeR++;//Serial.println(CountBlinkOnIntModeR);  
@@ -261,25 +259,27 @@ if(Stop == false){
                 }
                
                 // Сам блинкер
-                if(PovorotOnRight == true){ for(int i=0; i<13;++i){strip.SetPixelColor(i, color); }  strip.Show();} // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
+                    if(PovorotOnRight == true){ for(int i=0; i<13;++i){strip.SetPixelColor(i, color); }  strip.Show();} // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
+                    else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
+                }                                  //Авто лич
                 // Сам блинкер
 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                     if ( (CountBlinkOnIntModeR) >= (CountBlinkIntMode*2)+1 ){ 
                             beginIntModeBlinkR = false; EndedR=true;//Serial.println("EndedR=true"); //PositionRightCount = OldPositionRightCountInt; 
                             //PovorotOnRight=true;               
-                      if (digitalRead(RightButtonPin) ==LOW){PositionRightCount = OldPositionRightCountInt;PovorotOnRight=true;}  //Только когда мы отпускаем кнопку  
+                      if (digitalRead(RightButtonPin) ==LOW){
+                          if(AutomaticModeActivateR != true){ //Авто лич
+                            PositionRightCount = OldPositionRightCountInt;
+                          }                                   //Авто лич  
+                          PovorotOnRight=true;}  //Только когда мы отпускаем кнопку  
                     } 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 
-            }
-         
+            }        
             //Для правого поворота intellingent 
- 
 
-            //Для левого поворота intellingent
-            
+            //Для левого поворота intellingent          
             if(beginIntModeBlinkL == true ) { //Если исполняется интеллигент режим правого поворота           
                //beginIntModeBlinkR = false; PovorotnikiRightOff();
                 EndedL=false;   
@@ -306,72 +306,38 @@ if(Stop == false){
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                 
             }
-            else{                          // Если кнопка право отпущена
-/*
-                if(AutomaticModeActivateL != true){ 
-                    if(EndedL==false){ beginIntModeBlinkL=1; }  //Если прервано раньше времени то перезапуск режима моргания                
-                    
-                    timingLeftBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света
-                
-                    CountBlinkOnIntModeL=0;
-                    PovorotOnLeft=true;         //Чтобы всегда при включении поворотника всегда начинать с включенного света                 
-                }
-*/
-            } 
-            //*/
-          
+ 
         }  
     }    
     // ============================================          Часть Интеллигент режим         ============================================
 
     // ============================================          Часть автоматический режим         ============================================ 
-   // /*
   
-   //Serial.println();
     if(AutomaticMode == 1 ){ // Если из настроек мы получили разрешение активировать автоматический режим
-     if(IntelligentMode != 1){ // ==0 //Если сейчас не интеллигент режим
+     //if(IntelligentMode != 1){ // ==0 //Если сейчас не интеллигент режим
       if(OffPovorotniki == false){
-      // /*    
-if(EnterOnTheAutoMode==1){ // Если в меню выставлен пункт вкл авто режим по долгому нажатию
-      // Захвата автоматического режима по времени удержания кнопки
-      if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
-          if (millis() - timingPressButtonR > (TimePressToOnAutoMode*100) ){ // Вместо 500 подставьте нужное вам значение паузы 
-              Serial.println ("AutomaticModeActivateR == true");  
-              AutomaticModeActivateR=true; //Включение автоматического режима правого поворотника(Если в булях выставлено On)
-          }
-      }
-      if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
-          if (millis() - timingPressButtonL > (TimePressToOnAutoMode*100) ){ // Вместо 500 подставьте нужное вам значение паузы 
-              Serial.println ("AutomaticModeActivateL == true");  
-              AutomaticModeActivateL=true; //Включение автоматического режима левого поворотника(Если в булях выставлено On)
-          }
-      }
-     if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
-     // Захвата автоматического режима по времени удержания кнопки
-   // */
-}                        // Если в меню выставлен пункт вкл авто режим по долгому нажатию
-    // Захвата автоматического режима по двойному нажатию кнопки
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if(EnterOnTheAutoMode==0){ // Если в меню выставлен пункт вкл авто режим по двойному щелчку
+      
+      // Захват автоматического режима по времени удержания кнопки   
+        if(EnterOnTheAutoMode==1){ // Если в меню выставлен пункт вкл авто режим по долгому нажатию
+            
+            if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
+                if (millis() - timingPressButtonR > (TimePressToOnAutoMode*100) ){ // Вместо 500 подставьте нужное вам значение паузы 
+                    Serial.println ("AutomaticModeActivateR == true"); //OldPositionRightCount = PositionRightCount; //!!! 
+                    AutomaticModeActivateR=true; //Включение автоматического режима правого поворотника(Если в булях выставлено On)
+                }
+            }
+            if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
+                if (millis() - timingPressButtonL > (TimePressToOnAutoMode*100) ){ // Вместо 500 подставьте нужное вам значение паузы 
+                    Serial.println ("AutomaticModeActivateL == true");  
+                    AutomaticModeActivateL=true; //Включение автоматического режима левого поворотника(Если в булях выставлено On)
+                }
+            }
+            if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
+            // Захват автоматического режима по времени удержания кнопки
+        
+        }                        // Если в меню выставлен пункт вкл авто режим по долгому нажатию
+      // Захвата автоматического режима по двойному нажатию кнопки
+        if(EnterOnTheAutoMode==0){ // Если в меню выставлен пункт вкл авто режим по двойному щелчку
 
 //Пачка переменных для Захват левой кнопки double click 
     static unsigned long TimeDoublePressedL;
@@ -383,7 +349,7 @@ if(EnterOnTheAutoMode==0){ // Если в меню выставлен пункт
     
 //Пачка переменных для Захват левой кнопки double click
 
-// /*
+
 //Пачка переменных для Захват правой кнопки double click 
     static unsigned long TimeDoublePressedR;
     static unsigned long TimeDoublePressedR2;
@@ -392,7 +358,7 @@ if(EnterOnTheAutoMode==0){ // Если в меню выставлен пункт
     static bool OneShowDoubleR1;// Один раз зафиксить двойное нажатие левое
     static bool OneShowDoubleR2;
 //Пачка переменных для Захват правой кнопки double click
-// */
+
 //Захват левой кнопки double click
 if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
     if(DoublePressedStepL==1){ OneShowDoubleL1=false;
@@ -463,8 +429,8 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
         }
     }
     Serial.print(" AutomaticModeActivateL " );Serial.print( AutomaticModeActivateL );
-     Serial.print(" PositionRightCount " );Serial.print( PositionRightCount );
-      Serial.print(" OldPositionRightCount " );Serial.print( OldPositionRightCount );
+    Serial.print(" PositionRightCount " );Serial.print( PositionRightCount );
+    Serial.print(" OldPositionRightCount " );Serial.print( OldPositionRightCount );
  //Serial.print(" EnterOnTheAutoMode " );Serial.print( EnterOnTheAutoMode );
 //Печать и обработка левой кнопки double click to auto mode
 
@@ -500,56 +466,21 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
 
 
 } // Если в меню выставлен пункт вкл авто режим по двойному щелчку
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-        /*
-        static int8_t OldPositionRightCountAuto;
         // Один раз присвоить значение текущего ползунка право
-        if(OneRazAutoSetPolzunokR == false){
-            OldPositionRightCountAuto = PositionRightCount;
-        OneRazAutoSetPolzunokR = true;
-        }
-        */
-        // Один раз присвоить значение текущего ползунка право
-        
-
-      
+          
       if(DoubleR==false){ //DOUBLE CLICK Если дабл клик сработал кнопка отпустилась то так правельно приравняет и неуспеет испортить OldPositionRightCount = PositionRightCount
         if(AutomaticModeActivateR == true ) {//Если исполняется автоматический режим правого поворота
-          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
-          if(OneRazSavePRK_GE == false){
-              OldPositionRightCount = PositionRightCount;
-              OneRazSavePRK_GE = true;     
-          }    
-          // Один раз сохранить значение правого ползунка в переменную прошлого состояния
+            // Один раз сохранить значение правого ползунка в переменную прошлого состояния
+            if(OneRazSavePRK_GE == false){
+                OldPositionRightCount = PositionRightCount;
+                OneRazSavePRK_GE = true;     
+            }    
+            // Один раз сохранить значение правого ползунка в переменную прошлого состояния
             
               if(PositionRightCount > OldPositionRightCount){
                   AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
                   OneRazSavePRK_GE = false;
+                  beginIntModeBlinkR=0; //Чтобы после инта и выкл автомата сразу гасло ^^
               }
               if(PositionRightCount < OldPositionRightCount){
                   AutomaticModeActivateR = false; // Отключить автоматический режим правого поворотника
@@ -599,11 +530,9 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
       } 
       }//DOUBLE CLICK Если дабл клик сработал кнопка отпустилась то так правельно приравняет и неуспеет испортить OldPositionRightCount = PositionRightCount
 
-
-   } // if offpovorotniki == false
-  }                 // Если из настроек мы получили разрешение активировать автоматический режим
+   } 
+  //}                 // Если из настроек мы получили разрешение активировать автоматический режим
    
-    
         // Правый        
         if(AutomaticModeActivateR==true){
         RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
@@ -621,9 +550,9 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
             else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
             // Блинкер
             KIF_AvailableR = true;
+            HelloFromAutoMode=true;//Чтоб не моргало в инте после авто режима
         }
-        else{
-            
+        else{    
             //PovorotnikiRightOff();
         }
         // Правый 

@@ -47,11 +47,13 @@ void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,uns
         if(buttonPin == LeftButtonPin){
             //if(MenuLayer != -1){
                 PositionRightCount--; //Ползунок по горизонатали
-            //}
+            //} PositionRightCount = OldPositionRightCount
         }      
         // Ограничения
           if(MenuLayer!= -1){  
-              PositionRightCount=constrain(PositionRightCount,0,25); //Ограничил щелчки влево. Чуствуется в корне меню
+              if( (PositionUpCount !=7 && MenuLayer ==0) || (PositionUpCount !=7 && MenuLayer ==1)  ){ // Если курсор не на строке exit
+                PositionRightCount=constrain(PositionRightCount,0,25); //Ограничил щелчки влево. Чуствуется в корне меню
+              }                        // Если курсор не на строке exit
           }
         // Ограничения
         

@@ -265,7 +265,7 @@ while(1){
 
 // Печать отладки
 // /*
-// GlobalPrint();
+ GlobalPrint();
 // */
 // Печать отладки  
 
@@ -341,7 +341,12 @@ if(MenuLayer==0 || MenuLayer==1){
                             if(PositionRightCount == 1) {PositionRightCount=0;} // Заглушка
                         }
   if(PositionUpCount==7){   CirclY = 28; MenuLayer=1;  // exit
-                            if( PositionRightCount == 1){ 
+                            if( PositionRightCount == 1){ // Если мы жмякаем в правую сторону на exit
+                              MenuLayer=-1; OffPovorotniki = true; timingOffPovorotniki=millis(); 
+                              PovorotOnRight=true;
+                              PositionRightCount = OldPositionRightCountInt; // Чтоб убрать баги с морганием при выходе из меню интеллигент режим
+                            } // Выключить поворотники при выходе из меню
+                            if( PositionRightCount == -1){ // Если мы жмякаем в левую сторону на exit 
                               MenuLayer=-1; OffPovorotniki = true; timingOffPovorotniki=millis(); 
                               PovorotOnRight=true;
                               PositionRightCount = OldPositionRightCountInt; // Чтоб убрать баги с морганием при выходе из меню интеллигент режим
@@ -405,7 +410,7 @@ if(MenuLayer == 12){
   if(PositionRightCount == 0){ //Если в подменю 0.2 Нажата кнопка влево то выйти в главное меню
       MenuLayer=0;PositionUpCount=1;
   }
-  if(PositionUpCount==53)   { MenuLayer=11; }   //При скролле вверх перейти на верхнюю часть страницы
+  if(PositionUpCount== 53)  { MenuLayer=11; }   //При скролле вверх перейти на верхнюю часть страницы
   if(PositionUpCount > 55)  { PositionUpCount=55;  }   //Ограничить ползунок вниз
 
   OneRazPosition1_5 = false;
@@ -1380,16 +1385,10 @@ if(MenuLayer == 3021){ // 3.21
     u8g2.drawLine(0,27, 105, 27);
 
     u8g2.drawStr(0, 39, "1.6 How start");
-    if(EnterOnTheAutoMode == true){      u8g2.drawStr(95, 39, "P");   }
+    if(EnterOnTheAutoMode == true){      u8g2.drawStr(95, 39, "T");   }
     else                     {      u8g2.drawStr(95, 39, "D");  }
     u8g2.drawStr(0, 32+17, "Automatic mode");
     
-    /*
-    u8g2.drawStr(0, 39, "1.4 Automatic");
-    if(AutomaticMode == true){      u8g2.drawStr(95, 39, "On");   }
-    else                     {      u8g2.drawStr(95, 39, "Off");  }
-    u8g2.drawStr(0, 49, "mode"); // write something to the internal memory u8g2.print(float(SpeedPovorotnikBlink)/10 ,1); 
-    */
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display
   }
@@ -1400,7 +1399,6 @@ if(MenuLayer == 3021){ // 3.21
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
           u8g2.drawStr(15, 7,   "1.1 Speed Blink "); // write something to the internal memory
           
-          //u8g2.drawStr(0, 35,   "Val KM/h: ");
           u8g2.drawStr(0, 35,   "Times/sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
     
