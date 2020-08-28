@@ -57,9 +57,13 @@ bool OKlightFromAutoTomanualR =false; //Когда работает правый
 unsigned long timingMozjnoBlinkR; // Для таймера в режиме обычного нажатия клавишь. Связано с режимом авто и кнопкой отмены в обратную сторону
 
 int8_t OldPositionRightCount; // Для автомат режима
+bool DoubleL=false; //Говорит что есть дабл левый клик
+bool DoubleR=false; //Говорит что есть дабл правый клик
 
 bool Stop=false;
 int8_t OldPositionRightCountInt=1; // Для интеллект режима прошлая позиция ползунка
+
+extern bool EnterOnTheAutoMode;
 void PovorotnikiRightOff(); // Прототип функции выключения поворотника правого
 void PovorotnikiLeftOff();  // Прототип функции выключения поворотника левого
 void Povorotniki(){
@@ -158,27 +162,23 @@ if(Stop == false){
         }                    
       // <- Поворотник вправо          
       // <- Поворотник влево
-       //if(OKlightFromAutoTomanualL == true){ //Если можно гореть левому поворотнику
         if(digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==HIGH   ){ // Если кнопка лево нажата
             RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-            uint16_t TempInvertVal;
-            if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }
-            if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
+            uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
 
             if (millis() - timingLeftBlink > TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
                 PovorotOnLeft = !PovorotOnLeft;
                 timingLeftBlink = millis(); 
             }
-            //if(OKlightFromAutoTomanualL==true){ //! Не помогло
-               if(PovorotOnLeft == true){ for(int i=13; i<26;++i){strip.SetPixelColor(i, color);strip.Show(); } }// Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-            //}    
-            
+            // Блинкер
+            if(PovorotOnLeft == true){ for(int i=13; i<26;++i){strip.SetPixelColor(i, color);strip.Show(); } }// Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
             else{ PovorotnikiLeftOff();} // turn off the pixels // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ
+            // Блинкер
             
-        }                                  // Если кнопка право нажата
+        }                                                                           // Если кнопка лево нажата
         else{                          // Если кнопка лево отпущена 
             if(AutomaticModeActivateL != true){ //Если включен автомат режим то убираем быстрое моргание при отпускании
                 timingLeftBlink = millis(); //Чтобы всегда при включении поворотника всегда начинать с включенного света
@@ -331,7 +331,8 @@ if(Stop == false){
     if(AutomaticMode == 1 ){ // Если из настроек мы получили разрешение активировать автоматический режим
      if(IntelligentMode != 1){ // ==0 //Если сейчас не интеллигент режим
       if(OffPovorotniki == false){
-      /*    
+      // /*    
+if(EnterOnTheAutoMode==1){ // Если в меню выставлен пункт вкл авто режим по долгому нажатию
       // Захвата автоматического режима по времени удержания кнопки
       if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата правая кнопка и не зажата левая
           if (millis() - timingPressButtonR > (TimePressToOnAutoMode*100) ){ // Вместо 500 подставьте нужное вам значение паузы 
@@ -345,90 +346,186 @@ if(Stop == false){
               AutomaticModeActivateL=true; //Включение автоматического режима левого поворотника(Если в булях выставлено On)
           }
       }
+     if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
      // Захвата автоматического режима по времени удержания кнопки
-    */
+   // */
+}                        // Если в меню выставлен пункт вкл авто режим по долгому нажатию
     // Захвата автоматического режима по двойному нажатию кнопки
-    static unsigned long TimeDoublePressed;
-    static unsigned long TimeDoublePressed2;
-    static int8_t DoublePressedStep=1;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if(EnterOnTheAutoMode==0){ // Если в меню выставлен пункт вкл авто режим по двойному щелчку
+
+//Пачка переменных для Захват левой кнопки double click 
+    static unsigned long TimeDoublePressedL;
+    static unsigned long TimeDoublePressedL2;
+    static int8_t DoublePressedStepL=1;
+
+    static bool OneShowDoubleL1;// Один раз зафиксить двойное нажатие левое
+    static bool OneShowDoubleL2;
+    
+//Пачка переменных для Захват левой кнопки double click
+
+// /*
+//Пачка переменных для Захват правой кнопки double click 
+    static unsigned long TimeDoublePressedR;
+    static unsigned long TimeDoublePressedR2;
+    static int8_t DoublePressedStepR=1;
+
+    static bool OneShowDoubleR1;// Один раз зафиксить двойное нажатие левое
+    static bool OneShowDoubleR2;
+//Пачка переменных для Захват правой кнопки double click
+// */
+//Захват левой кнопки double click
 if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
-    if(DoublePressedStep==1){
-        TimeDoublePressed=millis();
-        DoublePressedStep=2;
+    if(DoublePressedStepL==1){ OneShowDoubleL1=false;
+        TimeDoublePressedL=millis();
+        DoublePressedStepL=2;
     }
-    if(DoublePressedStep==3){
-        TimeDoublePressed2=millis();
-        DoublePressedStep=4;
+    if(DoublePressedStepL==3){
+        TimeDoublePressedL2=millis();
+        DoublePressedStepL=4;
     }
     
 }
 if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата левая кнопка и не зажата правая
-    if(DoublePressedStep==2){
-        DoublePressedStep=3;
+    if(DoublePressedStepL==2){
+        DoublePressedStepL=3;OneShowDoubleL2=false;
     }
-    if(DoublePressedStep==4){
-        // <
-        if(TimeDoublePressed2>TimeDoublePressed){
-            if((TimeDoublePressed2-TimeDoublePressed)<600){        
-                Serial.println("                                                                                                                                    Double click");
-                //TimeDoublePressed=0;
-                //TimeDoublePressed2=0;
-            }
-        }
-        // /*
-        if(TimeDoublePressed2<TimeDoublePressed){
-            if((TimeDoublePressed-TimeDoublePressed2)<600){
-                Serial.println("                                                                                                                                    Double click");
-                //TimeDoublePressed=0;
-                //TimeDoublePressed2=0;
-            }
-        }   
-        // */ 
-        // <
-        DoublePressedStep=1;
+    if(DoublePressedStepL==4){DoublePressedStepL=1;}
+
+    if(DoubleL==true){
+        DoubleL=false;
     }
 }
+//Захват левой кнопки double click
+// /*
+//Захват правой кнопки double click
+if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата левая кнопка и не зажата правая
+    if(DoublePressedStepR==1){ OneShowDoubleR1=false;
+        TimeDoublePressedR=millis();
+        DoublePressedStepR=2;
+    }
+    if(DoublePressedStepR==3){
+        TimeDoublePressedR2=millis();
+        DoublePressedStepR=4;
+    }
+    
+}
+if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата левая кнопка и не зажата правая
+    if(DoublePressedStepR==2){
+        DoublePressedStepR=3;OneShowDoubleR2=false;
+    }
+    if(DoublePressedStepR==4){DoublePressedStepR=1;}
 
-    /*
-    if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==HIGH) ){  //Если зажата левая кнопка и не зажата правая
-        if(DoublePressedStep==1){
-            TimeDoublePressed=millis();
-            DoublePressedStep = 2;
-        }    
-        if(DoublePressedStep==3){
-            if ((millis()-TimeDoublePressed) < 600){
-                Serial.println("                                                                                            Double click");
-                DoublePressedStep = 1;
-            }
-            else{
-                DoublePressedStep = 1;Serial.println("                                                                                      %");
-                TimeDoublePressed=millis();
-            }
+    if(DoubleR==true){
+        DoubleR=false;
+    }
+}
+//Захват правой кнопки double click
+// */ 
+//Печать и обработка левой кнопки double click to auto mode
+    Serial.print(" DoublePressedStepL:" );Serial.print(DoublePressedStepL); Serial.print(" TimeDoublePressedL:" );Serial.print(TimeDoublePressedL); Serial.print(" TimeDoublePressedL2:" );Serial.print(TimeDoublePressedL2);
+    if(TimeDoublePressedL2>TimeDoublePressedL){
+        Serial.print(" TimeDoublePressedL2-TimeDoublePressedL " );Serial.print( TimeDoublePressedL2-TimeDoublePressedL );
+        if(OneShowDoubleL1==false){ //OneShowDoubleL == true
+            if((TimeDoublePressedL2-TimeDoublePressedL) < 380) { 
+                Serial.println("Double L");AutomaticModeActivateL=true; DoubleL=true; OldPositionRightCount = PositionRightCount;
+                }
+            OneShowDoubleL1=true;
+        }                          //OneShowDoubleL == true
+    }
+    if(TimeDoublePressedL2<TimeDoublePressedL){
+        Serial.print(" TimeDoublePressedL-TimeDoublePressedL2 " );Serial.print( TimeDoublePressedL-TimeDoublePressedL2 );
+        if(OneShowDoubleL2==false){
+            if((TimeDoublePressedL-TimeDoublePressedL2) < 380) { 
+                Serial.println("Double L");AutomaticModeActivateL=true;DoubleL=true;//!
+                OldPositionRightCount = PositionRightCount; 
+                }
+        OneShowDoubleL2=true;
         }
     }
+    Serial.print(" AutomaticModeActivateL " );Serial.print( AutomaticModeActivateL );
+     Serial.print(" PositionRightCount " );Serial.print( PositionRightCount );
+      Serial.print(" OldPositionRightCount " );Serial.print( OldPositionRightCount );
+ //Serial.print(" EnterOnTheAutoMode " );Serial.print( EnterOnTheAutoMode );
+//Печать и обработка левой кнопки double click to auto mode
 
-    if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  //Если зажата левая кнопка и не зажата правая
-        if(DoublePressedStep==2){
-            DoublePressedStep=3;
+// /*
+//Печать и обработка правой кнопки double click to auto mode
+    Serial.print(" DoublePressedStepR:" );Serial.print(DoublePressedStepR); Serial.print(" TimeDoublePressedR:" );Serial.print(TimeDoublePressedR); Serial.print(" TimeDoublePressedR2:" );Serial.print(TimeDoublePressedR2);
+    if(TimeDoublePressedR2>TimeDoublePressedR){
+        Serial.print(" TimeDoublePressedR2-TimeDoublePressedR " );Serial.print( TimeDoublePressedR2-TimeDoublePressedR );
+        if(OneShowDoubleR1==false){ //OneShowDoubleL == true
+            if((TimeDoublePressedR2-TimeDoublePressedR) < 380) { 
+                Serial.println("Double R"); AutomaticModeActivateR=true;DoubleR=true;//!
+                OldPositionRightCount = PositionRightCount; 
+                }
+            OneShowDoubleR1=true;
+        }                          //OneShowDoubleL == true
+    }
+    if(TimeDoublePressedR2<TimeDoublePressedR){
+        Serial.print(" TimeDoublePressedR-TimeDoublePressedR2 " );Serial.print( TimeDoublePressedR-TimeDoublePressedR2 );
+        if(OneShowDoubleR2==false){
+            if((TimeDoublePressedR-TimeDoublePressedR2) < 380) {
+                Serial.println("Double R"); AutomaticModeActivateR=true;DoubleR=true;//!
+                OldPositionRightCount = PositionRightCount; 
+                }
+        OneShowDoubleR2=true;
         }
-    }    
-    */
-    // /*
-    Serial.print(" TimeDoublePressedStep:" );Serial.print(DoublePressedStep);   
-    Serial.print(" TimeDoublePressed:" );Serial.print(TimeDoublePressed);
-    Serial.print(" TimeDoublePressed2:" );Serial.print(TimeDoublePressed2);
-    if(TimeDoublePressed2>TimeDoublePressed){
-        Serial.print(" TimeDoublePressed2-TimeDoublePressed " );Serial.print( TimeDoublePressed2-TimeDoublePressed );
     }
-    if(TimeDoublePressed2<TimeDoublePressed){
-        Serial.print(" TimeDoublePressed-TimeDoublePressed2 " );Serial.print( TimeDoublePressed-TimeDoublePressed2 );
-    }
+//Печать и обработка правой кнопки double click to auto mode
+// */
     Serial.println();
     // */
     // Захвата автоматического режима по двойному нажатию кнопки
 
-    if( digitalRead(RightButtonPin)==LOW && digitalRead(LeftButtonPin)==LOW ){  timingPressButtonR = millis();timingPressButtonL = millis(); }
+
+
+} // Если в меню выставлен пункт вкл авто режим по двойному щелчку
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
         /*
         static int8_t OldPositionRightCountAuto;
         // Один раз присвоить значение текущего ползунка право
@@ -441,8 +538,8 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
         
 
       
-
-      if(AutomaticModeActivateR == true ) {//Если исполняется автоматический режим правого поворота
+      if(DoubleR==false){ //DOUBLE CLICK Если дабл клик сработал кнопка отпустилась то так правельно приравняет и неуспеет испортить OldPositionRightCount = PositionRightCount
+        if(AutomaticModeActivateR == true ) {//Если исполняется автоматический режим правого поворота
           // Один раз сохранить значение правого ползунка в переменную прошлого состояния
           if(OneRazSavePRK_GE == false){
               OldPositionRightCount = PositionRightCount;
@@ -469,7 +566,10 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
               }
         PovorotOnLeft = false;
       }
-      if(AutomaticModeActivateL == true ) {//Если исполняется автоматический режим правого поворота
+      }//DOUBLE CLICK Если дабл клик сработал кнопка отпустилась то так правельно приравняет и неуспеет испортить OldPositionRightCount = PositionRightCount
+
+      if(DoubleL==false){ //DOUBLE CLICK Если дабл клик сработал кнопка отпустилась то так правельно приравняет и неуспеет испортить OldPositionRightCount = PositionRightCount
+        if(AutomaticModeActivateL == true ) {//Если исполняется автоматический режим правого поворота
           // Один раз сохранить значение правого ползунка в переменную прошлого состояния
           if(OneRazSavePRK_GE2L == false){
               OldPositionRightCount = PositionRightCount;
@@ -478,7 +578,8 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
           // Один раз сохранить значение правого ползунка в переменную прошлого состояния
           
       //Обработка нажатий в автоматическом режиме левого поворотника
-              if(PositionRightCount < OldPositionRightCount){
+                   
+              if(PositionRightCount < OldPositionRightCount){               
                   AutomaticModeActivateL = false; // Отключить автоматический режим правого поворотника
                   OneRazSavePRK_GE2L = false;
               }
@@ -495,8 +596,10 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
               }
         PovorotOnRight = false;
       //Обработка нажатий в автоматическом режиме левого поворотника
-      }
-      
+      } 
+      }//DOUBLE CLICK Если дабл клик сработал кнопка отпустилась то так правельно приравняет и неуспеет испортить OldPositionRightCount = PositionRightCount
+
+
    } // if offpovorotniki == false
   }                 // Если из настроек мы получили разрешение активировать автоматический режим
    

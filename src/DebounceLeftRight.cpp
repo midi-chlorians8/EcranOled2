@@ -6,6 +6,9 @@ extern int8_t MenuLayer;
 #define LeftButtonPin 32
 #define UpButtonPin 4
 #define DownButtonPin 2
+
+extern bool DoubleL;
+extern int8_t OldPositionRightCount;
 void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay){
   bool reading = digitalRead(buttonPin);
 
@@ -62,6 +65,7 @@ void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,uns
 
   // save the reading. Next time through the loop, it'll be the lastButtonState:
   lastButtonState = reading;
+
 }
 // <-
 /*

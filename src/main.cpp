@@ -209,7 +209,6 @@ bool AutomaticMode;          // 1.4
 int8_t TimePressToOnAutoMode;// 1.5
 
 bool EnterOnTheAutoMode;     // 1.6
-// Переменные которые мы изменяем из меню. Которые и влияют на работу системы
 #include "GlobalPrint.h"
 void setup(void) {
   Serial.begin(115200);
