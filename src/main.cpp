@@ -183,32 +183,35 @@ bool saveBlink_sensOnValue3_21;
 // Переменные для вкладки 3
 
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
-bool TunL=false;              //2.1  //Включает и выключает свет при вьезде в туннель
-int sensOnValue=0;            //2.2  //Параметр. Изминение чуствительности.
-bool AdaptivBrightness=false; //2.3
-int8_t StartToAccel=0;        //2.4
+  bool TunL=false;              //2.1  //Включает и выключает свет при вьезде в туннель
+  int sensOnValue=0;            //2.2  //Параметр. Изминение чуствительности.
+  bool AdaptivBrightness=false; //2.3
+  int8_t StartToAccel=0;        //2.4
 
-int8_t StopToAccel=0;        //2.5
-int8_t StartPersentBright=0; //2.6
-int8_t StopPersentBright=0;  //2.7
-int8_t DelayFallingBright=0; //2.8
+  int8_t StopToAccel=0;        //2.5
+  int8_t StartPersentBright=0; //2.6
+  int8_t StopPersentBright=0;  //2.7
+  int8_t DelayFallingBright=0; //2.8
 
-int8_t BrightWhenIdle=0;     //2.9
-int8_t SpeedFalling=0;       //2.10
-int8_t EcoBright=0;          //2.11
+  int8_t BrightWhenIdle=0;     //2.9
+  int8_t SpeedFalling=0;       //2.10
+  int8_t EcoBright=0;          //2.11
 
-bool VolumeOnSpeed = false;  // 3.1
-int8_t SettingMaxVolumeOnSpeed = 0; // 3.2 На какой скорости вкляются 2 буззера   
-bool VolumeTimePressed = false;
-int8_t SettingTimePresseMax;
+  bool BuzzerOn = false; // 3.1 Буззер включить или выключить вообще
+  bool VolumeOnSpeed = false;  // 3.1 Включить или выключить громкость в зависимости от скорости
+  int8_t SettingMaxVolumeOnSpeed = 0; // 3.2 На какой скорости вкляются 2 буззера   
+  bool VolumeTimePressed = false; // 3.3 Включить или выключить громкость в зависимости от времени нажатия на клавишу 
+  int8_t SettingTimePresseMax;    // 3.4 диапазон времени нажатия до максимальной громкости
 
-int8_t SpeedPovorotnikBlink; // 1.1
-bool IntelligentMode;        // 1.2
-int8_t CountBlinkIntMode;    // 1.3
-bool AutomaticMode;          // 1.4 
-int8_t TimePressToOnAutoMode;// 1.5
 
-bool EnterOnTheAutoMode;     // 1.6
+  int8_t SpeedPovorotnikBlink; // 1.1
+  bool IntelligentMode;        // 1.2
+  int8_t CountBlinkIntMode;    // 1.3
+  bool AutomaticMode;          // 1.4 
+  int8_t TimePressToOnAutoMode;// 1.5
+
+  bool EnterOnTheAutoMode;     // 1.6
+// Переменные которые мы изменяем из меню. Которые и влияют на работу системы
 #include "GlobalPrint.h"
 void setup(void) {
   Serial.begin(115200);
@@ -255,6 +258,7 @@ void setup(void) {
   TimePressToOnAutoMode =EEPROM.readByte(19);
 
   EnterOnTheAutoMode =EEPROM.readBool(20);
+  BuzzerOn =EEPROM.readBool(21);
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);

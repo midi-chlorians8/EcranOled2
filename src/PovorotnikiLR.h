@@ -59,11 +59,12 @@ int8_t OldPositionRightCount; // Для автомат режима
 bool DoubleL=false; //Говорит что есть дабл левый клик
 bool DoubleR=false; //Говорит что есть дабл правый клик
 
-bool Stop=false;
+bool Stop=false; //Флаг прекращения моргания при заверншении авомат режима
 int8_t OldPositionRightCountInt=1; // Для интеллект режима прошлая позиция ползунка
 
 extern bool EnterOnTheAutoMode;
  int8_t CountBlinkOnIntModeR;//Cчётчик морганий фактических правого поворотника
+  int8_t CountBlinkOnIntModeL;//Cчётчик морганий фактических правого поворотника
 void PovorotnikiRightOff(); // Прототип функции выключения поворотника правого
 void PovorotnikiLeftOff();  // Прототип функции выключения поворотника левого
 void Povorotniki(){
@@ -88,7 +89,8 @@ void Povorotniki(){
   // OffPovorotniki используются для того чтоб при выходе из главного меню небыло сразу морганий
 
     if (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==HIGH ){ 
-        PovorotnikiRightOff(); PovorotnikiLeftOff();
+        PovorotnikiRightOff(); 
+        PovorotnikiLeftOff();
         beginIntModeBlinkR = false; beginIntModeBlinkL = false;
         PositionRightCount =0;     // Cравнять и обнулить. Нужно когда моргает Int mode и в это время попытка есть входа в меню
         OldPositionRightCountInt=0;// Cравнять и обнулить. Нужно когда моргает Int mode и в это время попытка есть входа в меню
@@ -201,22 +203,31 @@ if(Stop == false){
  
     static bool LeftInt=false;
     
-    static int8_t CountBlinkOnIntModeL; //Cчётчик морганий фактических левого поворотника
-    static bool HelloFromAutoMode=false;
+    //static int8_t CountBlinkOnIntModeL; //Cчётчик морганий фактических левого поворотника
+    static bool HelloFromAutoMode=false; //Нужен чтобы после завершения автомат режима небыло остаточных морганий со счётчика int
     if(IntelligentMode == 1 ){
         if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)  
-            if(HelloFromAutoMode==true){ // Буль включается после завершения работы автоматического режима AutomaticModeActivateR
-                 OldPositionRightCountInt=PositionRightCount; 
-                 HelloFromAutoMode=false;
-            }
+            if(HelloFromAutoMode==true){ OldPositionRightCountInt=PositionRightCount;HelloFromAutoMode=false; }// Буль включается после завершения работы автоматического режима AutomaticModeActivateR. Нужен чтоб не моргало после завершения
+                  
             if(PositionRightCount > OldPositionRightCountInt ){
                  //if(AutomaticModeActivateR ==false){ //Авто мод лич
                     beginIntModeBlinkR=true;
                  //}                                  //Авто мод лич
             }    // Право ON Серелина Off Off Лево On
-            if(PositionRightCount == OldPositionRightCountInt){ 
-                beginIntModeBlinkR=false;PovorotnikiRightOff();CountBlinkOnIntModeR=0;
-                beginIntModeBlinkL=false;PovorotnikiLeftOff(); CountBlinkOnIntModeL=0;
+            
+            if(PositionRightCount == OldPositionRightCountInt){ // Тут если просто режим int и моргает и мы нажимаем в обратную сторону то гаснет
+                beginIntModeBlinkL=false; beginIntModeBlinkR=false;   // Отключение режима моганий в простом int  
+                CountBlinkOnIntModeL=0;   CountBlinkOnIntModeR=0; // Cброс количества морганий которое нужно сделать. 
+                
+                /*
+                if(AutomaticModeActivateL != true || AutomaticModeActivateR != true){ // Если мы работаем в автоматическом режиме после int то не мерцать!
+                    PovorotnikiRightOff();
+                    PovorotnikiLeftOff();
+                }
+                */
+                if(AutomaticModeActivateR != true){     PovorotnikiRightOff(); } // Если мы работаем в автоматическом режиме после int то не мерцать!
+                if(AutomaticModeActivateL != true){     PovorotnikiLeftOff();  } // Если мы работаем в автоматическом режиме после int то не мерцать!
+
                 }    
             if(PositionRightCount < OldPositionRightCountInt ){ beginIntModeBlinkL=true;}
                 
@@ -255,12 +266,11 @@ if(Stop == false){
                 if (millis() - timingRightBlink > TempInvertVal ){ // Таймер отсчёта включения и выключения правого поворотника
                     PovorotOnRight = !PovorotOnRight;
                     CountBlinkOnIntModeR++;//Serial.println(CountBlinkOnIntModeR);  
-                    timingRightBlink = millis(); 
-                }
+                    timingRightBlink = millis(); }
                
                 // Сам блинкер
                     if(PovorotOnRight == true){ for(int i=0; i<13;++i){strip.SetPixelColor(i, color); }  strip.Show();} // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                    else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
+                    else{  PovorotnikiRightOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels не тут
                 }                                  //Авто лич
                 // Сам блинкер
 
@@ -270,7 +280,7 @@ if(Stop == false){
                             //PovorotOnRight=true;               
                       if (digitalRead(RightButtonPin) ==LOW){
                           if(AutomaticModeActivateR != true){ //Авто лич
-                            PositionRightCount = OldPositionRightCountInt;
+                                PositionRightCount = OldPositionRightCountInt;
                           }                                   //Авто лич  
                           PovorotOnRight=true;}  //Только когда мы отпускаем кнопку  
                     } 
@@ -288,24 +298,31 @@ if(Stop == false){
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
                 uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250); }if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162); }
                 // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-                
-                if (millis() - timingLeftBlink > TempInvertVal ){PovorotOnLeft = !PovorotOnLeft;CountBlinkOnIntModeL++;Serial.println(CountBlinkOnIntModeL);timingLeftBlink = millis();} // Таймер отсчёта включения и выключения правого поворотника
-                          
-                // Сам блинкер
-                if(PovorotOnLeft == true){for(int i=13; i<26;++i){strip.SetPixelColor(i, color); }  strip.Show();  }// Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ   
-                else{  PovorotnikiLeftOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
+                if(AutomaticModeActivateL==false){ //Авто лич L
+
+                    if (millis() - timingLeftBlink > TempInvertVal ){PovorotOnLeft = !PovorotOnLeft;
+                        CountBlinkOnIntModeL++;Serial.println(CountBlinkOnIntModeL);
+                        timingLeftBlink = millis();} // Таймер отсчёта включения и выключения правого поворотника
+                            
+                    // Сам блинкер
+                    if(PovorotOnLeft == true){for(int i=13; i<26;++i){strip.SetPixelColor(i, color); }  strip.Show();  }// Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ   
+                    else{  PovorotnikiLeftOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
+                }                                  //Авто лич L
                 // Сам блинкер
 
                 // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
                       if ( (CountBlinkOnIntModeL) >= (CountBlinkIntMode*2)+1  ){ 
                         beginIntModeBlinkL = false; EndedL=true;
                         //Serial.println("EndedL=true");PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;
-                        if (digitalRead(LeftButtonPin) ==LOW){PositionRightCount = OldPositionRightCountInt;PovorotOnLeft=true;}  //Только когда мы отпускаем кнопку 
-                      }
-                         
-                // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое
-                
+                        if (digitalRead(LeftButtonPin) ==LOW){
+                            if(AutomaticModeActivateL != true){ //Авто лич L
+                                PositionRightCount = OldPositionRightCountInt; 
+                            }                                   //Авто лич L
+                            PovorotOnLeft=true;}  //Только когда мы отпускаем кнопку 
+                      }          
+                // Если моргнули заданное из меню кол-во раз то деактивировать интеллигент моргание правое      
             }
+            //Для левого поворота intellingent
  
         }  
     }    
@@ -346,7 +363,6 @@ if(Stop == false){
 
     static bool OneShowDoubleL1;// Один раз зафиксить двойное нажатие левое
     static bool OneShowDoubleL2;
-    
 //Пачка переменных для Захват левой кнопки double click
 
 
@@ -408,18 +424,18 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
 //Захват правой кнопки double click
 // */ 
 //Печать и обработка левой кнопки double click to auto mode
-    Serial.print(" DoublePressedStepL:" );Serial.print(DoublePressedStepL); Serial.print(" TimeDoublePressedL:" );Serial.print(TimeDoublePressedL); Serial.print(" TimeDoublePressedL2:" );Serial.print(TimeDoublePressedL2);
+    //Serial.print(" DoublePressedStepL:" );Serial.print(DoublePressedStepL); Serial.print(" TimeDoublePressedL:" );Serial.print(TimeDoublePressedL); Serial.print(" TimeDoublePressedL2:" );Serial.print(TimeDoublePressedL2);
     if(TimeDoublePressedL2>TimeDoublePressedL){
-        Serial.print(" TimeDoublePressedL2-TimeDoublePressedL " );Serial.print( TimeDoublePressedL2-TimeDoublePressedL );
+        //Serial.print(" TimeDoublePressedL2-TimeDoublePressedL " );Serial.print( TimeDoublePressedL2-TimeDoublePressedL );
         if(OneShowDoubleL1==false){ //OneShowDoubleL == true
             if((TimeDoublePressedL2-TimeDoublePressedL) < 380) { 
-                Serial.println("Double L");AutomaticModeActivateL=true; DoubleL=true; OldPositionRightCount = PositionRightCount;
-                }
+                AutomaticModeActivateL=true;  OldPositionRightCount = PositionRightCount;DoubleL=true;Serial.println("Double L");
+            }
             OneShowDoubleL1=true;
         }                          //OneShowDoubleL == true
     }
     if(TimeDoublePressedL2<TimeDoublePressedL){
-        Serial.print(" TimeDoublePressedL-TimeDoublePressedL2 " );Serial.print( TimeDoublePressedL-TimeDoublePressedL2 );
+        //Serial.print(" TimeDoublePressedL-TimeDoublePressedL2 " );Serial.print( TimeDoublePressedL-TimeDoublePressedL2 );
         if(OneShowDoubleL2==false){
             if((TimeDoublePressedL-TimeDoublePressedL2) < 380) { 
                 Serial.println("Double L");AutomaticModeActivateL=true;DoubleL=true;//!
@@ -428,17 +444,17 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
         OneShowDoubleL2=true;
         }
     }
-    Serial.print(" AutomaticModeActivateL " );Serial.print( AutomaticModeActivateL );
-    Serial.print(" PositionRightCount " );Serial.print( PositionRightCount );
-    Serial.print(" OldPositionRightCount " );Serial.print( OldPositionRightCount );
+    //Serial.print(" AutomaticModeActivateL " );Serial.print( AutomaticModeActivateL );
+    //Serial.print(" PositionRightCount " );Serial.print( PositionRightCount );
+    //Serial.print(" OldPositionRightCount " );Serial.print( OldPositionRightCount );
  //Serial.print(" EnterOnTheAutoMode " );Serial.print( EnterOnTheAutoMode );
 //Печать и обработка левой кнопки double click to auto mode
 
 // /*
 //Печать и обработка правой кнопки double click to auto mode
-    Serial.print(" DoublePressedStepR:" );Serial.print(DoublePressedStepR); Serial.print(" TimeDoublePressedR:" );Serial.print(TimeDoublePressedR); Serial.print(" TimeDoublePressedR2:" );Serial.print(TimeDoublePressedR2);
+    //Serial.print(" DoublePressedStepR:" );Serial.print(DoublePressedStepR); Serial.print(" TimeDoublePressedR:" );Serial.print(TimeDoublePressedR); Serial.print(" TimeDoublePressedR2:" );Serial.print(TimeDoublePressedR2);
     if(TimeDoublePressedR2>TimeDoublePressedR){
-        Serial.print(" TimeDoublePressedR2-TimeDoublePressedR " );Serial.print( TimeDoublePressedR2-TimeDoublePressedR );
+        //Serial.print(" TimeDoublePressedR2-TimeDoublePressedR " );Serial.print( TimeDoublePressedR2-TimeDoublePressedR );
         if(OneShowDoubleR1==false){ //OneShowDoubleL == true
             if((TimeDoublePressedR2-TimeDoublePressedR) < 380) { 
                 Serial.println("Double R"); AutomaticModeActivateR=true;DoubleR=true;//!
@@ -448,7 +464,7 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
         }                          //OneShowDoubleL == true
     }
     if(TimeDoublePressedR2<TimeDoublePressedR){
-        Serial.print(" TimeDoublePressedR-TimeDoublePressedR2 " );Serial.print( TimeDoublePressedR-TimeDoublePressedR2 );
+       // Serial.print(" TimeDoublePressedR-TimeDoublePressedR2 " );Serial.print( TimeDoublePressedR-TimeDoublePressedR2 );
         if(OneShowDoubleR2==false){
             if((TimeDoublePressedR-TimeDoublePressedR2) < 380) {
                 Serial.println("Double R"); AutomaticModeActivateR=true;DoubleR=true;//!
@@ -459,7 +475,7 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
     }
 //Печать и обработка правой кнопки double click to auto mode
 // */
-    Serial.println();
+   // Serial.println();
     // */
     // Захвата автоматического режима по двойному нажатию кнопки
 
@@ -538,9 +554,7 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
         RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
 
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
-            uint16_t TempInvertVal;
-            if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250);}
-            if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162);  }       
+            uint16_t TempInvertVal;if(SpeedPovorotnikBlink <= 20){ TempInvertVal= map( SpeedPovorotnikBlink,10,20,500,250);}if(SpeedPovorotnikBlink >20 && SpeedPovorotnikBlink <=30 ){ TempInvertVal= map( SpeedPovorotnikBlink,21,30,225,162);  }                    
             // Блок инвертирующий значение скорости моргания чтоб при увеличении значения поворотник моргал чаще
 
             if (millis() - timingRightBlink > TempInvertVal ){PovorotOnRight = !PovorotOnRight;timingRightBlink = millis(); } // Таймер отсчёта включения и выключения правого поворотника
@@ -580,6 +594,7 @@ if( (digitalRead(RightButtonPin)==LOW) && (digitalRead(LeftButtonPin)==LOW) ){  
             else{  PovorotnikiLeftOff();   }                    // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ // turn off the pixels
             // Блинкер
             KIF_AvailableL = true;
+            HelloFromAutoMode=true;//Чтоб не моргало в инте после авто режима
         }
         else{
             //PovorotnikiRightOff();
