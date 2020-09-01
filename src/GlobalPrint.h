@@ -4,12 +4,13 @@
 #include <Arduino.h> 
 extern int8_t CountBlinkOnIntModeR;
 void GlobalPrint(){
-    /*
+
 Serial.print(" MenuLayer:" );Serial.print(MenuLayer );
 Serial.print(" PositionUpCount:" );   Serial.print(PositionUpCount );
 
 
 Serial.print(" PositionRightCount:" );Serial.print(PositionRightCount );
+    /*
 Serial.print(" saveBlink3_1:" );Serial.print(saveBlink3_1 );
 
 Serial.print(" OldPositionRightCount(Auto):" );   Serial.print(OldPositionRightCount );

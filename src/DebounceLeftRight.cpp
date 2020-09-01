@@ -7,6 +7,8 @@ extern int8_t MenuLayer;
 #define UpButtonPin 4
 #define DownButtonPin 2
 
+
+
 extern bool DoubleL;
 extern int8_t OldPositionRightCount;
 void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay){
@@ -120,4 +122,5 @@ void PinMode(){
   pinMode(LeftButtonPin, INPUT_PULLDOWN); //Влево  (Выйти на уровень назад)
   pinMode(RightButtonPin,INPUT_PULLDOWN); //Вправо (Войти в подменю)
 
+  pinMode(25,OUTPUT); // Буззер выход BUZZER_PIN
 }

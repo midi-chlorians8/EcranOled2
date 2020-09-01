@@ -7,7 +7,6 @@ bool RightInt=false;
 #include "DebounceV2.h" // Обработка вертикальных кнопок
 int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
 
-
 bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
 
 // Переменные для того чтоб в 101 при переборе значения поворотники моргали
@@ -50,6 +49,7 @@ void SaveBlink3_1();
 void SaveBlink3_11();
 void SaveBlink3_2();
 void SaveBlink3_21();
+void SaveBlink3_6();
 void SaveBlink4_1();
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 // End of constructor list
@@ -187,6 +187,19 @@ bool saveBlink3_21=false;
 bool OneRazPosition3_21;
 int16_t old_SettingTimePresseMax;
 bool saveBlink_sensOnValue3_21;
+
+
+bool saveBlink3_6=false;    
+int16_t old_HowLongTimeBeep; // Старое значение
+int16_t old_PositionUpCount3_6;
+bool OneRazPosition3_6 = false; // Один раз завести правильное значение из меню
+bool saveBlink_sensOnValue3_6 = false;
+
+bool saveBlink3_7=false;    
+int16_t old_HowLongTimeBeepMute; // Старое значение
+int16_t old_PositionUpCount3_7;
+bool OneRazPosition3_7 = false; // Один раз завести правильное значение из меню
+bool saveBlink_sensOnValue3_7 = false;
 // Переменные для вкладки 3
 
 // Переменные для вкладки 4
@@ -216,9 +229,10 @@ bool saveBlink_EcoBright4_1;
   int8_t SettingMaxVolumeOnSpeed = 0; // 3.2 На какой скорости вкляются 2 буззера   
   bool VolumeTimePressed = false; // 3.3 Включить или выключить громкость в зависимости от времени нажатия на клавишу 
   int8_t SettingTimePresseMax;    // 3.4 диапазон времени нажатия до максимальной громкости
+  int8_t HowLongTimeBeep; // 3.6 Сколько времени длится гудок
+  int8_t HowLongTimeBeepMute; // 3.7 Сколько времени длится пауза
 
   bool DrawPovorotniki = false; // 4.1
-  
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
@@ -229,6 +243,7 @@ bool saveBlink_EcoBright4_1;
   bool EnterOnTheAutoMode;     // 1.6
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
 #include "GlobalPrint.h"
+#define BUZZER_PIN 25 //Белый буззер пин 
 void setup(void) {
   Serial.begin(115200);
   u8g2.begin();
@@ -276,6 +291,8 @@ void setup(void) {
   EnterOnTheAutoMode =EEPROM.readBool(20);
   BuzzerOn =EEPROM.readBool(21);
   DrawPovorotniki=EEPROM.readBool(22);
+  HowLongTimeBeep=EEPROM.readByte(23);
+  HowLongTimeBeepMute=EEPROM.readByte(24);
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);
@@ -305,10 +322,7 @@ if(MenuLayer==-1){
     if( (digitalRead(RightButtonPin)==HIGH) && (digitalRead(LeftButtonPin)==HIGH) ){ //Если нажаты левая и правая кнопки одновременно
 
         // Один раз замерять текущее время
-        if(OneRazMLayerMin1 == false){
-            FirstZamerMLayerMin1_Val = millis();
-            OneRazMLayerMin1 = true;
-        }
+        if(OneRazMLayerMin1 == false){ FirstZamerMLayerMin1_Val = millis();OneRazMLayerMin1 = true;}
         // Один раз замерять текущее время
 
         // Если текущее время - замерянное больше 2х секунд. То войти в меню 
@@ -320,12 +334,8 @@ if(MenuLayer==-1){
     }
     else{OneRazMLayerMin1=false;} 
   // Обработка входа в главное меню
-/*
-    if(IntelligentMode == false){ //!! Возможно не соответствует ТЗ! Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
-        
-    }                             //Если не включен режим интеллигент то моргать пока нажаты кнопки вправо или влево
-    */
-Povorotniki(); // Функция обрабатывает нажание на кнопки право и лево и включает выключает поворотники.
+
+  Povorotniki(); // Функция обрабатывает нажание на кнопки право и лево и включает выключает поворотники.
   // Измеряем время нажатия правой или левой кнопки для входа для включения автоматического режима
 // /*
    
@@ -431,11 +441,11 @@ if(MenuLayer == 12){
   if(PositionRightCount == 0){ //Если в подменю 0.2 Нажата кнопка влево то выйти в главное меню
       MenuLayer=0;PositionUpCount=1;
   }
-  if(PositionUpCount== 53)  { MenuLayer=11; }   //При скролле вверх перейти на верхнюю часть страницы
-  if(PositionUpCount > 55)  { PositionUpCount=55;  }   //Ограничить ползунок вниз
+  if(PositionUpCount== 53)  { MenuLayer = 11; }          //При скролле вверх перейти на верхнюю часть страницы
+  if(PositionUpCount > 55)  { PositionUpCount = 55; }   //Ограничить ползунок вниз
 
   OneRazPosition1_5 = false;
-  saveBlink_sensOnValue1_5=false;
+  saveBlink_sensOnValue1_5 = false;
 
   saveBlink_sensOnValue1_6=false;
   OneRazGalochka1_6=false;
@@ -1198,11 +1208,12 @@ if(MenuLayer == 31){ //Если в подменю 3
 }
 if(MenuLayer == 32){ //Если в подменю 3
     if(PositionUpCount==104){   CirclY = 7;   }  //TunL  //Перебираем ползунок
-  
+    if(PositionUpCount==105){   CirclY = 37;  }          //Перебираем ползунок
+
     if(PositionRightCount == 2 && PositionUpCount==104){ MenuLayer=3021; PositionUpCount=160; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
+    if(PositionRightCount == 2 && PositionUpCount==105){ MenuLayer=306; PositionUpCount=180; } //
     
-    
-    if(PositionUpCount==103){    MenuLayer=31;  } //При скролле вниз перейти на нижнюю часть страницы
+    if(PositionUpCount==103)   { MenuLayer=31;  } //При скролле вниз перейти на нижнюю часть страницы
     if(PositionRightCount == 0){ MenuLayer=0;  PositionUpCount=3; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
    
     /*
@@ -1211,9 +1222,43 @@ if(MenuLayer == 32){ //Если в подменю 3
     saveBlink_sensOnValue3_21=false;
     OneRazPosition3_21=false;
     */
-      
+    OneRazPosition3_6 = false;
+    saveBlink_sensOnValue3_6 = false;
+    if(PositionUpCount==106){    MenuLayer=33;  } //При скролле вниз перейти на нижнюю часть страницы
+
+    //if(PositionUpCount > 105){PositionUpCount = 105;} // Ограничить вертикальный ползунок при движении вниз
     
-    if(PositionUpCount > 104){PositionUpCount = 104;} // Ограничить вертикальный ползунок при движении вниз
+    //saveBlink_sensOnValue3_2=false;
+    //OneRazPosition3_2=false;
+
+    //OneRazGalochka3_3 = false;
+}
+if(MenuLayer == 33){ //Если в подменю 3
+    if(PositionUpCount==106){   CirclY = 7;   }  //TunL  //Перебираем ползунок
+    //if(PositionUpCount==105){   CirclY = 37;  }          //Перебираем ползунок
+
+    if(PositionRightCount == 2 && PositionUpCount==106){ MenuLayer=307; PositionUpCount=180; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
+    //if(PositionRightCount == 2 && PositionUpCount==105){ MenuLayer=306; PositionUpCount=180; } //
+    
+    if(PositionUpCount==105)   { MenuLayer=32;  } //При скролле вверх перейти на верхнюю часть страницы
+    if(PositionUpCount > 106){PositionUpCount = 106;} // Ограничить вертикальный ползунок при движении вниз
+    if(PositionRightCount == 0){ MenuLayer=0;  PositionUpCount=3; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
+   
+    /*
+    OneRazGalochka3_1 = false;
+    OneRazGalochka3_2  =false;
+    saveBlink_sensOnValue3_21=false;
+    OneRazPosition3_21=false;
+    */
+    OneRazPosition3_6 = false;
+    saveBlink_sensOnValue3_6 = false;
+
+    OneRazPosition3_7 = false;
+    saveBlink_sensOnValue3_7 = false;
+    if(PositionUpCount==106){    MenuLayer=33;  } //При скролле вниз перейти на нижнюю часть страницы
+
+    //if(PositionUpCount > 105){PositionUpCount = 105;} // Ограничить вертикальный ползунок при движении вниз
+    
     //saveBlink_sensOnValue3_2=false;
     //OneRazPosition3_2=false;
 
@@ -1375,6 +1420,41 @@ if(MenuLayer == 3021){ // 3.21
           }
       }
 }
+if(MenuLayer == 306){ // 1.5 TimePressToOnAutoMode
+    if(OneRazPosition3_6==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_HowLongTimeBeep = HowLongTimeBeep;       
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(HowLongTimeBeep,0,50,-180,-230);
+        // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition3_6=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount3_6=PositionUpCount; // Постоянно присваивать в старое значение
+      HowLongTimeBeep=abs(    (180 + PositionUpCount)   );   
+  
+       HowLongTimeBeep=constrain(HowLongTimeBeep,0,50);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-230){PositionUpCount=-230;}  // Защита от выхода за диапазон)
+
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+          EEPROM.writeByte(23, HowLongTimeBeep);
+          EEPROM.commit();
+
+          saveBlink_sensOnValue3_6=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink3_6=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+
+       if(saveBlink_sensOnValue3_6 != true){
+          HowLongTimeBeep=old_HowLongTimeBeep;
+       }
+
+      MenuLayer=32;PositionUpCount=105;
+    }
+}
 // Перебираем вкладку 3
 
 // Перебираем вкладку 4
@@ -1425,9 +1505,6 @@ if(MenuLayer == 401){ // 4.1
       u8g2.clearBuffer();          // clear the internal memory
       
       
-      
-
-
       if(DrawPovorotniki==false){
         u8g2.setFont(u8g2_font_7x14B_tr);	
         u8g2.drawStr(20, 35-3, "Glavnij Ekran");  //u8g2.drawStr(35+10, 40-3, "Off");
@@ -1439,7 +1516,13 @@ if(MenuLayer == 401){ // 4.1
           (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true )  )
            { //Если правый поворотник горит то нарисовать правый поворотник
               u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
+              // Обработка звука // Вынести в отдельную функцию!
+              //digitalWrite(25,HIGH);
+              // Обработка звука // Вынести в отдельную функцию!
            }
+           //else{
+           //  digitalWrite(25,LOW);
+           //}
           if(  
           (PovorotOnLeft==true && beginIntModeBlinkL==true) ||  
           (AutomaticModeActivateL==1 && PovorotOnLeft==true) ||  
@@ -1447,9 +1530,8 @@ if(MenuLayer == 401){ // 4.1
            { //Если правый поворотник горит то нарисовать правый поворотник
               u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
            }
-
-
       }                           // Если включена отрисовка поворотников
+      // Обработка звука
       u8g2.sendBuffer();          // transfer internal memory to the display
   }
   if (MenuLayer == 0 ) {
@@ -2282,12 +2364,41 @@ if(MenuLayer == 401){ // 4.1
     //else                         {  u8g2.drawStr(97, 12, "Off");  }
     
     u8g2.drawLine(0, 27, 105, 27);
-/*
-    u8g2.drawStr(0, 39, "3.4 Set. time");
-                           u8g2.setCursor(97,39);  
-                           u8g2.print(SettingTimePresseMax);
-    u8g2.drawStr(0, 49, "pressed Max"); // write something to the internal memory 
-    */                       
+    
+    u8g2.drawStr(0, 39, "3.6 Set. how"); 
+                  u8g2.setCursor(97,39);  
+                  u8g2.print(float(HowLongTimeBeep)/10 ,1);
+    u8g2.drawStr(0, 49, "long time Beep"); // write something to the internal memory 
+   
+
+   //u8g2.setCursor(95,12);  
+                          
+    
+    u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
+    u8g2.sendBuffer();          // transfer internal memory to the display 
+  }
+  if (MenuLayer == 33 ) {
+    u8g2.clearBuffer();          // clear the internal memory
+    u8g2.setFont(u8g2_font_6x12_tr);
+    u8g2.drawStr(0, 12, "3.7 Set. how"); // write something to the internal memory 3.3 Volume On Time
+    u8g2.drawStr(0, 22, "long time Beep Delay");
+                           u8g2.setCursor(97,12);  
+                           u8g2.print(float(HowLongTimeBeepMute)/10 ,1);
+    
+    
+    //if(VolumeTimePressed == true){  u8g2.drawStr(97, 12, "On");   }
+    //else                         {  u8g2.drawStr(97, 12, "Off");  }
+    
+    u8g2.drawLine(0, 27, 105, 27);
+    
+    u8g2.drawStr(0, 39, "3.8 abc"); 
+                  u8g2.setCursor(97,39);  
+                  u8g2.print(float(HowLongTimeBeep)/10 ,1);
+    u8g2.drawStr(0, 49, "defg"); // write something to the internal memory 
+   
+
+   //u8g2.setCursor(95,12);  
+                          
     
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
@@ -2467,7 +2578,39 @@ if(MenuLayer == 401){ // 4.1
           SaveBlink3_21();  
       }
   }
+  if (MenuLayer == 306 ) { // 1.5
+      if(saveBlink3_6==false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
+          u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
+          
+          u8g2.drawStr(20, 35,  "Sec:");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(60-10,35);  u8g2.print(float(HowLongTimeBeep)/10 ,1);         
 
+          u8g2.drawTriangle(85,28, 88,16, 91,28);
+          u8g2.drawTriangle(85,32, 88,44, 91,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(36, 60, "0 - 5 sec");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+           SaveBlink3_6();
+      }  
+  }
   if (MenuLayer == 40 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -2939,6 +3082,76 @@ void SaveBlink1_6(){ // Анимация моргания слова save в п�
           
 }
 
+
+void SaveBlink3_6(){
+ static int8_t counterSaveBlink3_6;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink3_6++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink3_6 == 1){
+      u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
+          u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
+          
+          u8g2.drawStr(20, 35,  "Sec:");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(60-10,35);  u8g2.print(float(HowLongTimeBeep)/10 ,1);         
+
+          u8g2.drawTriangle(85,28, 88,16, 91,28);
+          u8g2.drawTriangle(85,32, 88,44, 91,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(36, 60, "0 - 5 sec");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0,   50, "back"); 
+
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+          
+   if(counterSaveBlink3_6 == 2){
+      u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
+          u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
+          
+          u8g2.drawStr(20, 35,  "Sec:");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(60-10,35);  u8g2.print(float(HowLongTimeBeep)/10 ,1);         
+
+          u8g2.drawTriangle(85,28, 88,16, 91,28);
+          u8g2.drawTriangle(85,32, 88,44, 91,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(36, 60, "0 - 5 sec");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+
+          u8g2.sendBuffer();          // transfer internal memory to the display
+          saveBlink3_6=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink3_6=0;
+   }
+          
+ }
+
 void SaveBlink3_21(){
   static int8_t counterSaveBlink3_21;
   static unsigned long timing;
@@ -3007,7 +3220,6 @@ void SaveBlink3_21(){
       counterSaveBlink3_21=0;
    }
 }
-
 void SaveBlink3_2(){
   static int8_t counterSaveBlink3_2;
   static unsigned long timing;
@@ -3075,7 +3287,6 @@ void SaveBlink3_2(){
           counterSaveBlink3_2=0;
    }
 }
-
 void SaveBlink3_11(){
   static int8_t counterSaveBlink3_11;
   static unsigned long timing;
@@ -4085,61 +4296,6 @@ void SaveBlink4_1(){
           counterSaveBlink4_1=0;
    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /*
