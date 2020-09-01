@@ -441,7 +441,6 @@ if(MenuLayer == 12){
   OneRazGalochka1_6=false;
 }
 
-
 if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
      
     static unsigned long timingLeftRightBlink101; // Используется для таймера моргания правого поворотника
@@ -1424,14 +1423,32 @@ if(MenuLayer == 401){ // 4.1
 // Отрисовка меню
   if (MenuLayer == -1){
       u8g2.clearBuffer();          // clear the internal memory
-      u8g2.setFont(u8g2_font_7x14B_tr);	
-      u8g2.drawStr(20, 35-3, "Glavnij Ekran");  //u8g2.drawStr(35+10, 40-3, "Off");
-      if(DrawPovorotniki == true){ // Если включена отрисовка поворотников
-          if(PovorotOnRight==true && beginIntModeBlinkR==true){ //Если правый поворотник горит то нарисовать правый поворотник
-              //u8g2.drawTriangle(85+8,28, 88+8,16, 91+8,28);
-              u8g2.drawTriangle(108,62, 128,57, 108,52);
+      
+      
+      
 
-          }
+
+      if(DrawPovorotniki==false){
+        u8g2.setFont(u8g2_font_7x14B_tr);	
+        u8g2.drawStr(20, 35-3, "Glavnij Ekran");  //u8g2.drawStr(35+10, 40-3, "Off");
+      }
+      if(DrawPovorotniki == true){ // Если включена отрисовка поворотников
+          if(  
+          (PovorotOnRight==true && beginIntModeBlinkR==true) ||  
+          (AutomaticModeActivateR==1 && PovorotOnRight==true) ||  
+          (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true )  )
+           { //Если правый поворотник горит то нарисовать правый поворотник
+              u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
+           }
+          if(  
+          (PovorotOnLeft==true && beginIntModeBlinkL==true) ||  
+          (AutomaticModeActivateL==1 && PovorotOnLeft==true) ||  
+          (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true )  )
+           { //Если правый поворотник горит то нарисовать правый поворотник
+              u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
+           }
+
+
       }                           // Если включена отрисовка поворотников
       u8g2.sendBuffer();          // transfer internal memory to the display
   }
@@ -3266,7 +3283,6 @@ void SaveBlink3_0(){
           counterSaveBlink3_0=0;
    }
 }
-
 void SaveBlink2_11(){ // Анимация моргания слова save в подпункте 2.11
   static int8_t counterSaveBlink2_11;
   static unsigned long timing2_11;  if (millis() - timing2_11 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -3397,7 +3413,6 @@ void SaveBlink2_10(){ // Анимация моргания слова save в п
           counterSaveBlink2_10=0;
    }
 }
-
 void SaveBlink2_9(){ // Анимация моргания слова save в подпункте 2.9
   static int8_t counterSaveBlink2_9;
   static unsigned long timing2_9;  if (millis() - timing2_9 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -3529,7 +3544,6 @@ void SaveBlink2_8(){ // Анимация моргания слова save в п�
    }
           
 }
-
 void SaveBlink2_7(){ // Анимация моргания слова save в подпункте 2.7
   static int8_t counterSaveBlink2_7;
   static unsigned long timing2_7;  if (millis() - timing2_7 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -3595,7 +3609,6 @@ void SaveBlink2_7(){ // Анимация моргания слова save в п�
           counterSaveBlink2_7=0;
    }
 }
-
 void SaveBlink2_6(){ // Анимация моргания слова save в подпункте 2.6
   static int8_t counterSaveBlink2_6;
   static unsigned long timing2_6;  if (millis() - timing2_6 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -3661,7 +3674,6 @@ void SaveBlink2_6(){ // Анимация моргания слова save в п�
           counterSaveBlink2_6=0;
    }
 }
-
 void SaveBlink2_5(){ // Анимация моргания слова save в подпункте 2.5
   static int8_t counterSaveBlink2_5;
   static unsigned long timing2_4;  if (millis() - timing2_4 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -3727,7 +3739,6 @@ void SaveBlink2_5(){ // Анимация моргания слова save в п�
           counterSaveBlink2_5=0;
    }
 }
-
 void SaveBlink2_4(){ // Анимация моргания слова save в подпункте 2.3
   static int8_t counterSaveBlink2_4;
   static unsigned long timing2_4;  if (millis() - timing2_4 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -3793,7 +3804,6 @@ void SaveBlink2_4(){ // Анимация моргания слова save в п�
           counterSaveBlink2_4=0;
    }
 }
-
 void SaveBlink2_3(){ // Анимация моргания слова save в подпункте 2.3
   static int8_t counterSaveBlink2_3;
   static unsigned long timing;
@@ -3867,7 +3877,6 @@ void SaveBlink2_3(){ // Анимация моргания слова save в п�
           counterSaveBlink2_3=0;
    }
 }
-
 void SaveBlink2_2(){ // Анимация моргания слова save в подпункте 2.2
   static int8_t counterSaveBlink2_2;
   static unsigned long timing2_2;
