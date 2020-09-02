@@ -447,8 +447,9 @@ if(MenuLayer == 12){
   if(PositionRightCount == 0){ //Если в подменю 0.2 Нажата кнопка влево то выйти в главное меню
       MenuLayer=0;PositionUpCount=1;
   }
-  if(PositionUpCount== 53)  { MenuLayer = 11; }          //При скролле вверх перейти на верхнюю часть страницы
-  if(PositionUpCount > 55)  { PositionUpCount = 55; }   //Ограничить ползунок вниз
+  if(PositionUpCount== 53)  { MenuLayer = 11; }         //При скролле вверх перейти на верхнюю часть страницы
+  if(PositionUpCount== 56)  { MenuLayer = 13; }
+  //if(PositionUpCount > 55)  { PositionUpCount = 55; }   //Ограничить ползунок вниз
 
   OneRazPosition1_5 = false;
   saveBlink_sensOnValue1_5 = false;
@@ -456,6 +457,27 @@ if(MenuLayer == 12){
   saveBlink_sensOnValue1_6=false;
   OneRazGalochka1_6=false;
 }
+if(MenuLayer == 13){
+  if(PositionUpCount==56){  CirclY = 10-1;  }
+  if(PositionUpCount==57){  CirclY = 22+13; }
+
+  if(PositionRightCount == 2 && PositionUpCount==56){ MenuLayer=107; PositionUpCount=180; }//Если курсор первая строка и есть нажатие вправо - перейти в 1.1
+  if(PositionRightCount == 2 && PositionUpCount==57){ MenuLayer=108; PositionUpCount=180; }
+
+  if(PositionRightCount == 0){ //Если в подменю 0.2 Нажата кнопка влево то выйти в главное меню
+      MenuLayer=0;PositionUpCount=1;
+  }
+  if(PositionUpCount== 55)  { MenuLayer = 12; }         //При скролле вверх перейти на верхнюю часть страницы
+  //if(PositionUpCount== 56)  { MenuLayer = 13; }
+  if(PositionUpCount > 57)  { PositionUpCount = 57; }   //Ограничить ползунок вниз
+
+
+    OneRazPosition3_6 = false;
+    saveBlink_sensOnValue3_6 = false;
+
+    OneRazPosition3_7 = false;
+    saveBlink_sensOnValue3_7 = false;}
+
 
 if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
      
@@ -700,6 +722,7 @@ if(MenuLayer == 106){ // 1.6
     }
     
 }
+
 // Перебираем вкладку 1
 
 // Перебираем вкладку 2
@@ -1256,11 +1279,7 @@ if(MenuLayer == 33){ //Если в подменю 3
     saveBlink_sensOnValue3_21=false;
     OneRazPosition3_21=false;
     */
-    OneRazPosition3_6 = false;
-    saveBlink_sensOnValue3_6 = false;
-
-    OneRazPosition3_7 = false;
-    saveBlink_sensOnValue3_7 = false;
+ 
     //if(PositionUpCount==106){    MenuLayer=33;  } //При скролле вниз перейти на нижнюю часть страницы
 
     //if(PositionUpCount > 105){PositionUpCount = 105;} // Ограничить вертикальный ползунок при движении вниз
@@ -1426,7 +1445,7 @@ if(MenuLayer == 3021){ // 3.21
           }
       }
 }
-if(MenuLayer == 306){ // 1.5 TimePressToOnAutoMode
+if(MenuLayer == 107){ // 3.6 TimePressToOnAutoMode
     if(OneRazPosition3_6==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
        old_HowLongTimeBeep = HowLongTimeBeep;       
        
@@ -1458,10 +1477,10 @@ if(MenuLayer == 306){ // 1.5 TimePressToOnAutoMode
           HowLongTimeBeep=old_HowLongTimeBeep;
        }
 
-      MenuLayer=32;PositionUpCount=105;
+      MenuLayer=13;PositionUpCount=56;
     }
 }
-if(MenuLayer == 307){ // 1.5 
+if(MenuLayer == 108){ // 3.7 
     if(OneRazPosition3_7==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
        old_HowLongTimeBeepMute = HowLongTimeBeepMute;       
        
@@ -1493,7 +1512,7 @@ if(MenuLayer == 307){ // 1.5
               HowLongTimeBeepMute=old_HowLongTimeBeepMute;
           }
 
-      MenuLayer=33;PositionUpCount=106;
+      MenuLayer=13;PositionUpCount=57;
       }
 }
 // Перебираем вкладку 3
@@ -1543,8 +1562,7 @@ if(MenuLayer == 401){ // 4.1
 }
 // Отрисовка меню
   if (MenuLayer == -1){
-      u8g2.clearBuffer();          // clear the internal memory
-      
+      u8g2.clearBuffer();          // clear the internal memory   
       
       if(DrawPovorotniki==false){
         u8g2.setFont(u8g2_font_7x14B_tr);	
@@ -1599,31 +1617,29 @@ if(MenuLayer == 401){ // 4.1
               OnSound = true; //timingOn=millis(); 
            }
    
-     else{OnSound = false;Perebor=0; } 
+     else{OnSound = false;Perebor=0;timingOn=millis(); } 
               
      
          // Обработка  звука включение и выключение буззера при повороте
 
 //  /*
-      // Проигрывание звука вызванного работой поворотников
+      // Проигрывание звука вызванного работой поворотников 
       static unsigned long timingPause; // Время Паузы
       
       if(OnSound == true){
 
            if (Perebor == 0){
               //if (millis() - timingOn > 500){ // Вместо 10000 подставьте нужное вам значение паузы
-                if (millis() - timingOn > (HowLongTimeBeep*100) ){ // Вместо 10000 подставьте нужное вам значение паузы
-                  digitalWrite(25,HIGH);//Serial.println("HH!!HH");
-                  
+              digitalWrite(25,HIGH); // Включить буззер
+              if (millis() - timingOn > (HowLongTimeBeep*100) ){ // Вместо 10000 подставьте нужное вам значение паузы                  
                   timingPause= millis(); 
                   Perebor=1;
               }
            }
            if (Perebor == 1){
               //if (millis() - timingPause > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+              digitalWrite(25,LOW); // Выключить буззер
               if (millis() - timingPause > (HowLongTimeBeepMute*100) ){ // Вместо 10000 подставьте нужное вам значение паузы 
-                  digitalWrite(25,LOW);
-                  
                   timingOn = millis();
                   Perebor=0; 
               }
@@ -1700,7 +1716,6 @@ if(MenuLayer == 401){ // 4.1
     u8g2.clearBuffer();          // clear the internal memory
     
     u8g2.setFont(u8g2_font_6x12_tr);
-    //u8g2.drawStr(20, 7, " 1 Povorotniki"); // write something to the internal memory
     u8g2.drawStr(0, 12, "1.5 Time Press"); // write something to the internal memory TimePressToOnAutoMode
                             u8g2.setCursor(95,12);  
                             u8g2.print(float(TimePressToOnAutoMode)/10 ,1);
@@ -1712,6 +1727,26 @@ if(MenuLayer == 401){ // 4.1
     if(EnterOnTheAutoMode == true){      u8g2.drawStr(95, 39, "T");   }
     else                     {      u8g2.drawStr(95, 39, "D");  }
     u8g2.drawStr(0, 32+17, "Automatic mode");
+    
+    u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
+    u8g2.sendBuffer();          // transfer internal memory to the display
+  }
+   if (MenuLayer == 13 ) {
+    u8g2.clearBuffer();          // clear the internal memory
+    
+    u8g2.setFont(u8g2_font_6x12_tr);
+    //u8g2.drawStr(20, 7, " 1 Povorotniki"); // write something to the internal memory
+    u8g2.drawStr(0, 12, "1.7 Set. how"); // write something to the internal memory TimePressToOnAutoMode
+                            u8g2.setCursor(95,12);  
+                            u8g2.print(float(HowLongTimeBeep)/10 ,1);
+    u8g2.drawStr(0, 22, "long time Beep"); // write something to the internal
+    
+    u8g2.drawLine(0,27, 105, 27);
+
+    u8g2.drawStr(0, 39, "1.8 Set. how");
+                            u8g2.setCursor(95,39); 
+                            u8g2.print(float(HowLongTimeBeepMute)/10 ,1);
+    u8g2.drawStr(0, 32+17, "long time Beep Mute");
     
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display
@@ -2453,7 +2488,6 @@ if(MenuLayer == 401){ // 4.1
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
   }  
-  
   if (MenuLayer == 32 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -2485,8 +2519,8 @@ if(MenuLayer == 401){ // 4.1
     u8g2.setFont(u8g2_font_6x12_tr);
     u8g2.drawStr(0, 12, "3.7 Set. how"); // write something to the internal memory 3.3 Volume On Time
     u8g2.drawStr(0, 22, "long time Beep Delay");
-                           u8g2.setCursor(97,12);  
-                           u8g2.print(float(HowLongTimeBeepMute)/10 ,1);
+                  u8g2.setCursor(97,12);  
+                  u8g2.print(float(HowLongTimeBeepMute)/10 ,1);
     
     
     //if(VolumeTimePressed == true){  u8g2.drawStr(97, 12, "On");   }
@@ -2682,12 +2716,12 @@ if(MenuLayer == 401){ // 4.1
           SaveBlink3_21();  
       }
   }
-  if (MenuLayer == 306 ) { // 1.5
+  if (MenuLayer == 107 ) { // 1.5
       if(saveBlink3_6==false){
           u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
-          u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
+          u8g2.drawStr(5, 7,   "1.7 HowLongTimeBeep"); // write something to the internal memory
           
           u8g2.drawStr(20, 35,  "Sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
@@ -2715,12 +2749,12 @@ if(MenuLayer == 401){ // 4.1
            SaveBlink3_6();
       }  
   }
-  if (MenuLayer == 307 ) { // 1.5
+  if (MenuLayer == 108 ) { // 1.5
       if(saveBlink3_7==false){
           u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
-          u8g2.drawStr(5, 7,   "3.7 HowLongTimeBeepMute"); // write something to the internal memory
+          u8g2.drawStr(0, 7,   "1.8 HowLongTimeBeepMute"); // write something to the internal memory
           
           u8g2.drawStr(20, 35,  "Sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
@@ -3231,7 +3265,7 @@ void SaveBlink3_7(){
        u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
-          u8g2.drawStr(5, 7,   "3.7 HowLongTimeBeepMute"); // write something to the internal memory
+          u8g2.drawStr(0, 7,   "1.8 HowLongTimeBeepMute"); // write something to the internal memory
           
           u8g2.drawStr(20, 35,  "Sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
@@ -3260,7 +3294,7 @@ void SaveBlink3_7(){
        u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
-          u8g2.drawStr(5, 7,   "3.7 HowLongTimeBeepMute"); // write something to the internal memory
+          u8g2.drawStr(0, 7,   "1.8 HowLongTimeBeepMute"); // write something to the internal memory
           
           u8g2.drawStr(20, 35,  "Sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
@@ -3300,8 +3334,8 @@ void SaveBlink3_6(){
       u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
-          u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
-          
+          //u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
+          u8g2.drawStr(5, 7,   "1.7 HowLongTimeBeep");
           u8g2.drawStr(20, 35,  "Sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
     
@@ -3329,8 +3363,8 @@ void SaveBlink3_6(){
       u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	TimePressToOnAutoMode
-          u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
-          
+          //u8g2.drawStr(5, 7,   "3.6 HowLongTimeBeep"); // write something to the internal memory
+          u8g2.drawStr(5, 7,   "1.7 HowLongTimeBeep");
           u8g2.drawStr(20, 35,  "Sec:");
           u8g2.setFont(u8g2_font_10x20_tr);	      
     
