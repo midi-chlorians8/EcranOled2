@@ -19,12 +19,15 @@ Serial.print(" OldPositionRightCount(Auto):" );   Serial.print(OldPositionRightC
 Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt);
 */
 Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR ); 
-Serial.print(" PovorotOnRight(int):" );Serial.print(PovorotOnRight);
+Serial.print(" IntelligentMode:" );Serial.print(IntelligentMode);
  Serial.print(" CountBlinkOnIntModeR:" );Serial.print(CountBlinkOnIntModeR);
-Serial.print(" beginIntModeBlinkR:" );Serial.print(beginIntModeBlinkR );
+Serial.print(" OnSound:" );Serial.print(OnSound );
 
+Serial.print(" HowLongTimeBeep)/10:" );Serial.print(float(HowLongTimeBeep)/10 ,1 );
+
+Serial.print(" HowLongTimeBeep*100:" );Serial.print(HowLongTimeBeep*100);
+//Serial.print(" Perebor:" );Serial.print(Perebor ); 
 /*
-Serial.print(" AutomaticModeActivateL:" );Serial.print(AutomaticModeActivateL ); 
 Serial.print(" PovorotOnLeft(int):" );Serial.print(PovorotOnLeft);
  Serial.print(" CountBlinkOnIntModeL:" );Serial.print(CountBlinkOnIntModeL);
 Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL );
