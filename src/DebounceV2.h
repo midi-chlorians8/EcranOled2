@@ -104,7 +104,8 @@ if(digitalRead(buttonPin)==0){
           if(MinusUP == false){
               if(MenuLayer != 0 && MenuLayer != 1 && MenuLayer != 20 && MenuLayer != 21 &&
                MenuLayer != 22 && MenuLayer != 23 && MenuLayer != 10 && MenuLayer != 202 &&
-               MenuLayer != 208 && MenuLayer != 210 
+               MenuLayer != 208 && MenuLayer != 2100 && 
+               MenuLayer != 10 && MenuLayer != 11 && MenuLayer != 12 && MenuLayer != 13
                ){ // Если на первом уровне и ненадо мотать на + - 10
                   PositionUpCount-=10;
               }       // Если на первом уровне и других ненадо мотать на + - 10
@@ -124,7 +125,8 @@ if(digitalRead(buttonPin)==0){
           if(MinusUP == false){
               if(MenuLayer != 0 && MenuLayer != 1 && MenuLayer != 20 && MenuLayer != 21 &&
                MenuLayer != 22 && MenuLayer != 23 && MenuLayer != 10 && MenuLayer != 202 &&
-               MenuLayer != 208 && MenuLayer != 210
+               MenuLayer != 208 && MenuLayer != 210 && 
+               MenuLayer != 10 && MenuLayer != 11 && MenuLayer != 12 && MenuLayer != 13
                ){ // Если на первом уровне и других ненадо мотать на + - 10
                   PositionUpCount+=10;
                   MinusUP = true;

@@ -36,6 +36,9 @@ void SaveBlink1_3();
 void SaveBlink1_4(); 
 void SaveBlink1_5(); 
 void SaveBlink1_6();
+
+void SaveBlink1_9();
+
 void SaveBlink2_1();
 void SaveBlink2_2();
 void SaveBlink2_3();
@@ -103,6 +106,11 @@ bool OneRazPosition1_6=false;
 bool OneRazGalochka1_6=false; // Используется для того чтоб галочка ставилась напротив текущего значения
 bool saveBlink1_6=false;
 bool saveBlink_sensOnValue1_6=false;
+
+bool OneRazPosition1_9=false;  //!!
+bool OneRazGalochka1_9=false; // Используется для того чтоб галочка ставилась напротив текущего значения
+bool saveBlink1_9=false;
+bool saveBlink_sensOnValue1_9=false;
 // Переменные для вкладки 1
 
 // Переменные для вкладки 2
@@ -239,7 +247,7 @@ bool saveBlink_EcoBright4_1;
   int8_t HowLongTimeBeepMute; // 3.7 Сколько времени длится пауза
 
   bool DrawPovorotniki = false; // 4.1
-  bool TactPovorotnikiToLightOrBeep; // 4.2 //Будет ли  стрелочка в такт со светом моргать или с буззером 
+  bool TactPovorotnikiToLightOrBeep; // 4.2 //Будет ли стрелочка в такт со светом моргать или с буззером 
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
@@ -301,7 +309,7 @@ void setup(void) {
   HowLongTimeBeep=EEPROM.readByte(23);
   HowLongTimeBeepMute=EEPROM.readByte(24);
 
-  TactPovorotnikiToLightOrBeep=EEPROM.readByte(24);
+  TactPovorotnikiToLightOrBeep=EEPROM.readByte(25);
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);
@@ -400,7 +408,7 @@ if(MenuLayer==0 || MenuLayer==1){
 // Перебираем вкладку 1
 if(MenuLayer == 10){
   //if(PositionUpCount < 50){PositionUpCount = 50;} // Ограничить вертикальный ползунок при движении вверх
-  if(PositionUpCount == 49){PositionUpCount = 55;MenuLayer=12;} // Ограничить вертикальный ползунок при движении вверх
+  if(PositionUpCount == 49){PositionUpCount = 58;MenuLayer=14;} // Ограничить вертикальный ползунок при движении вверх
 
 
   if(PositionUpCount==50){   CirclY = 20-1;   }
@@ -472,16 +480,43 @@ if(MenuLayer == 13){
   }
   if(PositionUpCount== 55)  { MenuLayer = 12; }         //При скролле вверх перейти на верхнюю часть страницы
   //if(PositionUpCount== 56)  { MenuLayer = 13; }
-  if(PositionUpCount > 57)  { PositionUpCount = 57; }   //Ограничить ползунок вниз
-
+  //if(PositionUpCount > 57)  {MenuLayer=10; PositionUpCount = 50; }   //Ограничить ползунок вниз
+  if(PositionUpCount > 57)  {MenuLayer=14; PositionUpCount = 58; }   //Ограничить ползунок вниз
 
     OneRazPosition3_6 = false;
     saveBlink_sensOnValue3_6 = false;
 
     OneRazPosition3_7 = false;
-    saveBlink_sensOnValue3_7 = false;}
 
+    saveBlink_sensOnValue3_7 = false;
+    digitalWrite(25,LOW); // Выключить буззер
+    }
+if(MenuLayer == 14){
+  if(PositionUpCount==58){  CirclY = 10-1;  }
+  //if(PositionUpCount==59){  CirclY = 22+13; }
 
+  if(PositionRightCount == 2 && PositionUpCount==58) { MenuLayer=109; PositionUpCount=120; }//Если курсор первая строка и есть нажатие вправо - перейти в 1.1
+  //if(PositionRightCount == 2 && PositionUpCount==57){ MenuLayer=108; PositionUpCount=180; }
+
+  if(PositionRightCount == 0){ //Если в подменю 0.2 Нажата кнопка влево то выйти в главное меню
+      MenuLayer=0; PositionUpCount=1;
+  }
+  saveBlink_sensOnValue1_9=false;
+  OneRazGalochka1_9=false;
+
+  if(PositionUpCount== 57)  { MenuLayer = 13; }         //При скролле вверх перейти на верхнюю часть страницы
+  if(PositionUpCount == 59 || PositionUpCount == 60 )  {MenuLayer=10; PositionUpCount = 50; }   //Ограничить ползунок вниз
+
+/*
+    OneRazPosition3_6 = false;
+    saveBlink_sensOnValue3_6 = false;
+
+    OneRazPosition3_7 = false;
+    saveBlink_sensOnValue3_7 = false;
+    digitalWrite(25,LOW); // Выключить буззер
+*/
+    }
+//TactPovorotnikiToLightOrBeep
 if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
      
     static unsigned long timingLeftRightBlink101; // Используется для таймера моргания правого поворотника
@@ -843,6 +878,28 @@ if(MenuLayer == 108){ // 3.7
       
       // Проигрывание звука вызванного работой поворотников
 }
+if(MenuLayer == 109){ // 1.9
+      if(PositionRightCount ==1){ // back
+          MenuLayer=14;PositionUpCount=58;
+      }
+      if(PositionRightCount ==3){ // save
+
+          if(PositionUpCount ==120){
+            TactPovorotnikiToLightOrBeep=true;
+          }
+          if(PositionUpCount ==121){
+            TactPovorotnikiToLightOrBeep=false;
+          }
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+          EEPROM.writeBool(25, TactPovorotnikiToLightOrBeep);
+          EEPROM.commit();
+
+          saveBlink1_9=true;
+          PositionRightCount =2;
+      }
+      //PositionUpCount=constrain(PositionUpCount,120,121);
+      //Serial.println("201!");
+  }
 // Перебираем вкладку 1
 
 // Перебираем вкладку 2
@@ -1128,7 +1185,7 @@ if(MenuLayer == 207){ // 2.7 Stop % Bright.
        
        // Исполнить один раз чтоб галочка соответствовала значению      
         PositionUpCount=map(StopPersentBright,0,100,-180,-280);
-       // Исполнить один раз чтоб галочка соответствовала значению
+       // Исполнить ��дин раз чтоб галочка соответствовала значению
               
         OneRazPosition2_7=true;
       }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
@@ -1595,7 +1652,7 @@ if(MenuLayer == 40){
   
 }
 
-if(MenuLayer == 401){ // 4.1
+if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     if(PositionRightCount ==1){ // back
         MenuLayer=40;PositionUpCount=1;
     }
@@ -1613,6 +1670,7 @@ if(MenuLayer == 401){ // 4.1
     //Serial.println("201!");
 }
 // Отрисовка меню
+
   if (MenuLayer == -1){
       u8g2.clearBuffer();          // clear the internal memory   
       
@@ -1620,33 +1678,37 @@ if(MenuLayer == 401){ // 4.1
         u8g2.setFont(u8g2_font_7x14B_tr);	
         u8g2.drawStr(20, 35-3, "Glavnij Ekran");  //u8g2.drawStr(35+10, 40-3, "Off");
       }
-      if(DrawPovorotniki == true){ // Если включена отрисовка поворотников
-          if(  
-          (PovorotOnRight==true && beginIntModeBlinkR==true) ||  
-          (AutomaticModeActivateR==1 && PovorotOnRight==true) ||  
-          (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true )  )
-           { //Если правый поворотник горит то нарисовать правый поворотник
-              u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
-              // Вынести в отдельную функцию!
-              //digitalWrite(25,HIGH);
-              // Обработка звука // Вынести в отдельную функцию!
-           }
-           //else{
-           //  digitalWrite(25,LOW);
-           //}
-          if(  
-          (PovorotOnLeft==true && beginIntModeBlinkL==true) ||  
-          (AutomaticModeActivateL==1 && PovorotOnLeft==true) ||  
-          (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true )  )
-           { //Если правый поворотник горит то нарисовать правый поворотник
-              u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
-           }
+      if(DrawPovorotniki == true){ // Если включена отрисовка поворотников то рисуем стрелочки
+          // Стрелочка ресуется в соответствии с могранием поворотника
+          if (TactPovorotnikiToLightOrBeep == 1){ // Если включена отрисовка стрелочки в зависимости от света    
+              if(  
+              (PovorotOnRight==true && beginIntModeBlinkR==true) ||  
+              (AutomaticModeActivateR==1 && PovorotOnRight==true) ||  
+              (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true )  )
+              { //Если правый поворотник горит то нарисовать правый поворотник
+                  u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
+              }
+              
+              if(  
+              (PovorotOnLeft==true && beginIntModeBlinkL==true) ||  
+              (AutomaticModeActivateL==1 && PovorotOnLeft==true) ||  
+              (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true )  )
+              { //Если правый поворотник горит то нарисовать правый поворотник
+                  u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
+              }
+          } // Если включена отрисовка стрелочки в зависимости от света
+          if (TactPovorotnikiToLightOrBeep == 0){ // Если включена отрисовка стрелочки в зависимости от звука
+
+          }
+          // Стрелочка ресуется в соответствии с могранием поворотника
+
       }                           // Если включена отрисовка поворотников
       // Обработка  звука включение и выключение буззера при повороте
 
       static unsigned long timingOn; // Время Писка
       static int8_t Perebor=0; // Cоставная часть пищательного механизма
 
+      //if (TactPovorotnikiToLightOrBeep == 1){ // Если включен звук в зависимости от света
       // Включение режима  звука от правого поворотника
       if(  
           (PovorotOnRight==true && beginIntModeBlinkR==true) || (PovorotOnRight==false && beginIntModeBlinkR==true) || 
@@ -1654,10 +1716,9 @@ if(MenuLayer == 401){ // 4.1
           (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 ) ||  
           (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 1 && AutomaticModeActivateR==0 ) )
            {
-              OnSound = true; //timingOn=millis();
+              OnSound = true; //timingOn=millis(); 
            }
-  
-      // Включение режима звука от правого поворотника 
+      // Включение режима звука от правого поворотника  
 
       // Включение режима звука от левого поворотника 
       else if(  
@@ -1668,14 +1729,15 @@ if(MenuLayer == 401){ // 4.1
            {
               OnSound = true; //timingOn=millis(); 
            }
-   
-     else{OnSound = false;Perebor=0;timingOn=millis(); } 
+      // Включение режима звука от левого поворотника 
+      else{OnSound = false;Perebor=0;timingOn=millis(); } 
               
-     
+      //}                                     // Если включен звук в зависимости от света     
          // Обработка  звука включение и выключение буззера при повороте
 
 //  /*
       // Проигрывание звука вызванного работой поворотников 
+      
       static unsigned long timingPause; // Время Паузы
       
       if(OnSound == true){
@@ -1783,7 +1845,7 @@ if(MenuLayer == 401){ // 4.1
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display
   }
-   if (MenuLayer == 13 ) {
+  if (MenuLayer == 13 ) {
     u8g2.clearBuffer();          // clear the internal memory
     
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -1802,6 +1864,26 @@ if(MenuLayer == 401){ // 4.1
     
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display
+  }
+  if (MenuLayer == 14 ) {
+    u8g2.clearBuffer();          // clear the internal memory
+    
+    u8g2.setFont(u8g2_font_6x12_tr);
+    //u8g2.drawStr(20, 7, " 1 Povorotniki"); // write something to the internal memory 
+    u8g2.drawStr(0, 12, "1.9 Tact Povorotn."); // write something to the internal memory TimePressToOnAutoMode
+                            if(TactPovorotnikiToLightOrBeep == true){ u8g2.drawStr(108, 12, "L");   }
+                            else                          {   u8g2.drawStr(108, 12, "B"); }
+    u8g2.drawStr(0, 22, "To Light Or Beep"); // write something to the internal
+    
+    u8g2.drawLine(0,27, 105, 27);
+/*
+    u8g2.drawStr(0, 39, "1.8 Set. how");
+                            u8g2.setCursor(95,39); 
+                            u8g2.print(float(HowLongTimeBeepMute)/10 ,1);
+    u8g2.drawStr(0, 32+17, "long time Beep Mute");
+*/   
+    u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
+    u8g2.sendBuffer();          // transfer internal memory to the display 
   }
   if (MenuLayer == 101 ) { // 1.1
       if(saveBlink1_1==false){
@@ -2005,6 +2087,41 @@ if(MenuLayer == 401){ // 4.1
       }
       PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
   }
+  if (MenuLayer == 109 ) { // 1.2
+      if(saveBlink1_9==false){
+          u8g2.clearBuffer();          // clear the internal memory TactPovorotnikiToLightOrBeep
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(5, 7,   "1.9 Tact Povorotniki"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(35+10, 25-3, "Light");  u8g2.drawStr(35+10, 40-3, "Beep");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka1_9==false){
+              if(TactPovorotnikiToLightOrBeep==true) { PositionUpCount=120; }
+              if(TactPovorotnikiToLightOrBeep==false){ PositionUpCount=121; }
+          OneRazGalochka1_9=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(95-10,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(95-10,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+        SaveBlink1_9();       
+      }
+      PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
+  }
+  
 
   if (MenuLayer == 20 ) {
     u8g2.clearBuffer();          // clear the internal memory
@@ -2837,6 +2954,8 @@ if(MenuLayer == 401){ // 4.1
       }  
   }
   
+
+
   if (MenuLayer == 40 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -3307,7 +3426,74 @@ void SaveBlink1_6(){ // Анимация моргания слова save в п�
    }
           
 }
+void SaveBlink1_9(){ // Анимация моргания слова save в подпункте 2.1
+  static int8_t counterSaveBlink1_9;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink1_9++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink1_9 == 1){
+      u8g2.clearBuffer();          // clear the internal memory TactPovorotnikiToLightOrBeep
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(5, 7,   "1.9 Tact Povorotniki"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(35+10, 25-3, "Light");  u8g2.drawStr(35+10, 40-3, "Beep");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka1_9==false){
+              if(TactPovorotnikiToLightOrBeep==true) { PositionUpCount=120; }
+              if(TactPovorotnikiToLightOrBeep==false){ PositionUpCount=121; }
+          OneRazGalochka1_9=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(95-10,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(95-10,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
 
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+          
+   if(counterSaveBlink1_9 == 2){
+      u8g2.clearBuffer();          // clear the internal memory TactPovorotnikiToLightOrBeep
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(5, 7,   "1.9 Tact Povorotniki"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(35+10, 25-3, "Light");  u8g2.drawStr(35+10, 40-3, "Beep");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka1_9==false){
+              if(TactPovorotnikiToLightOrBeep==true) { PositionUpCount=120; }
+              if(TactPovorotnikiToLightOrBeep==false){ PositionUpCount=121; }
+          OneRazGalochka1_9=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(95-10,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(95-10,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+          saveBlink1_9=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink1_9=0;
+   }
+          
+}
 void SaveBlink3_7(){
  static int8_t counterSaveBlink3_7;
   static unsigned long timing;
@@ -3376,7 +3562,6 @@ void SaveBlink3_7(){
    }
           
  }
-
 void SaveBlink3_6(){
  static int8_t counterSaveBlink3_6;
   static unsigned long timing;

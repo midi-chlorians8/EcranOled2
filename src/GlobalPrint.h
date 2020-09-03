@@ -25,7 +25,8 @@ Serial.print(" OnSound:" );Serial.print(OnSound );
 
 Serial.print(" HowLongTimeBeep)/10:" );Serial.print(float(HowLongTimeBeep)/10 ,1 );
 
-Serial.print(" HowLongTimeBeep*100:" );Serial.print(HowLongTimeBeep*100);
+Serial.print(" TactPovorotnikiToLightOrBeep:" );Serial.print(TactPovorotnikiToLightOrBeep); //L -1 ;B - 0;
+
 //Serial.print(" Perebor:" );Serial.print(Perebor ); 
 /*
 Serial.print(" PovorotOnLeft(int):" );Serial.print(PovorotOnLeft);
