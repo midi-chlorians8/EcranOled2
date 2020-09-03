@@ -239,6 +239,7 @@ bool saveBlink_EcoBright4_1;
   int8_t HowLongTimeBeepMute; // 3.7 Сколько времени длится пауза
 
   bool DrawPovorotniki = false; // 4.1
+  bool TactPovorotnikiToLightOrBeep; // 4.2 //Будет ли  стрелочка в такт со светом моргать или с буззером 
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
@@ -299,6 +300,8 @@ void setup(void) {
   DrawPovorotniki=EEPROM.readBool(22);
   HowLongTimeBeep=EEPROM.readByte(23);
   HowLongTimeBeepMute=EEPROM.readByte(24);
+
+  TactPovorotnikiToLightOrBeep=EEPROM.readByte(24);
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);
@@ -722,7 +725,124 @@ if(MenuLayer == 106){ // 1.6
     }
     
 }
+if(MenuLayer == 107){ // 3.6 TimePressToOnAutoMode
+    if(OneRazPosition3_6==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_HowLongTimeBeep = HowLongTimeBeep;       
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(HowLongTimeBeep,0,50,-180,-230);
+        // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition3_6=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount3_6=PositionUpCount; // Постоянно присваивать в старое значение
+      HowLongTimeBeep=abs(    (180 + PositionUpCount)   );   
+  
+       HowLongTimeBeep=constrain(HowLongTimeBeep,0,50);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-230){PositionUpCount=-230;}  // Защита от выхода за диапазон)
 
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+          EEPROM.writeByte(23, HowLongTimeBeep);
+          EEPROM.commit();
+
+          saveBlink_sensOnValue3_6=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink3_6=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+
+          if(saveBlink_sensOnValue3_6 != true){
+              HowLongTimeBeep=old_HowLongTimeBeep;
+          }
+
+          MenuLayer=13;PositionUpCount=56;
+       } 
+          // Проигрывание звука вызванного работой поворотников
+      static unsigned long timingOn; // Время Паузы 
+      static unsigned long timingPause; // Время Паузы
+      static int8_t Perebor;
+
+           if (Perebor == 0){
+              //if (millis() - timingOn > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+              digitalWrite(25,HIGH); // Включить буззер
+              if (millis() - timingOn > (HowLongTimeBeep*100) ){ // Вместо 10000 подставьте нужное вам значение паузы                  
+                  timingPause= millis(); 
+                  Perebor=1;
+              }
+           }
+           if (Perebor == 1){
+              //if (millis() - timingPause > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+              digitalWrite(25,LOW); // Выключить буззер
+              if (millis() - timingPause > (HowLongTimeBeepMute*100) ){ // Вместо 10000 подставьте нужное вам значение паузы 
+                  timingOn = millis();
+                  Perebor=0; 
+              }
+           }
+
+      
+      // Проигрывание звука вызванного работой поворотников
+}
+if(MenuLayer == 108){ // 3.7 
+    if(OneRazPosition3_7==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_HowLongTimeBeepMute = HowLongTimeBeepMute;       
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(HowLongTimeBeepMute,0,50,-180,-230);
+        // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition3_7=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount3_7=PositionUpCount; // Постоянно присваивать в старое значение
+      HowLongTimeBeepMute=abs(    (180 + PositionUpCount)   );   
+  
+       HowLongTimeBeepMute=constrain(HowLongTimeBeepMute,0,50);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-230){PositionUpCount=-230;}  // Защита от выхода за диапазон)
+
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+          EEPROM.writeByte(24, HowLongTimeBeepMute);
+          EEPROM.commit();
+
+          saveBlink_sensOnValue3_7=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink3_7=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+
+          if(saveBlink_sensOnValue3_7 != true){
+              HowLongTimeBeepMute=old_HowLongTimeBeepMute;
+          }
+
+      MenuLayer=13;PositionUpCount=57;
+      }
+                // Проигрывание звука вызванного работой поворотников
+      static unsigned long timingOn; // Время Паузы 
+      static unsigned long timingPause; // Время Паузы
+      static int8_t Perebor;
+
+           if (Perebor == 0){
+              //if (millis() - timingOn > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+              digitalWrite(25,HIGH); // Включить буззер
+              if (millis() - timingOn > (HowLongTimeBeep*100) ){ // Вместо 10000 подставьте нужное вам значение паузы                  
+                  timingPause= millis(); 
+                  Perebor=1;
+              }
+           }
+           if (Perebor == 1){
+              //if (millis() - timingPause > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+              digitalWrite(25,LOW); // Выключить буззер
+              if (millis() - timingPause > (HowLongTimeBeepMute*100) ){ // Вместо 10000 подставьте нужное вам значение паузы 
+                  timingOn = millis();
+                  Perebor=0; 
+              }
+           }
+
+      
+      // Проигрывание звука вызванного работой поворотников
+}
 // Перебираем вкладку 1
 
 // Перебираем вкладку 2
@@ -1237,7 +1357,7 @@ if(MenuLayer == 31){ //Если в подменю 3
 }
 if(MenuLayer == 32){ //Если в подменю 3
     if(PositionUpCount==104){   CirclY = 7;   }  //TunL  //Перебираем ползунок
-    if(PositionUpCount==105){   CirclY = 37;  }          //Перебираем ползунок
+   // if(PositionUpCount==105){   CirclY = 37;  }          //Перебираем ползунок
 
     if(PositionRightCount == 2 && PositionUpCount==104){ MenuLayer=3021; PositionUpCount=160; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
     if(PositionRightCount == 2 && PositionUpCount==105){ MenuLayer=306; PositionUpCount=180; } //
@@ -1253,7 +1373,7 @@ if(MenuLayer == 32){ //Если в подменю 3
     */
     OneRazPosition3_6 = false;
     saveBlink_sensOnValue3_6 = false;
-    if(PositionUpCount==106){    MenuLayer=33;  } //При скролле вниз перейти на нижнюю часть страницы
+    if(PositionUpCount>104){  MenuLayer=30;  PositionUpCount=100;  } //При скролле вниз перейти на нижнюю часть страницы
 
     //if(PositionUpCount > 105){PositionUpCount = 105;} // Ограничить вертикальный ползунок при движении вниз
     
@@ -1262,6 +1382,7 @@ if(MenuLayer == 32){ //Если в подменю 3
 
     //OneRazGalochka3_3 = false;
 }
+/*
 if(MenuLayer == 33){ //Если в подменю 3
     if(PositionUpCount==106){   CirclY = 7;   }  //TunL  //Перебираем ползунок
     //if(PositionUpCount==105){   CirclY = 37;  }          //Перебираем ползунок
@@ -1273,12 +1394,12 @@ if(MenuLayer == 33){ //Если в подменю 3
     if(PositionUpCount > 106){PositionUpCount = 106;} // Ограничить вертикальный ползунок при движении вниз
     if(PositionRightCount == 0){ MenuLayer=0;  PositionUpCount=3; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
    
-    /*
+    
     OneRazGalochka3_1 = false;
     OneRazGalochka3_2  =false;
     saveBlink_sensOnValue3_21=false;
     OneRazPosition3_21=false;
-    */
+    
  
     //if(PositionUpCount==106){    MenuLayer=33;  } //При скролле вниз перейти на нижнюю часть страницы
 
@@ -1289,7 +1410,7 @@ if(MenuLayer == 33){ //Если в подменю 3
 
     //OneRazGalochka3_3 = false;
 }
-
+*/
 if(MenuLayer == 300){ // 3.0
     if(PositionRightCount ==1){ // back
         MenuLayer=30;PositionUpCount=100;
@@ -1445,76 +1566,7 @@ if(MenuLayer == 3021){ // 3.21
           }
       }
 }
-if(MenuLayer == 107){ // 3.6 TimePressToOnAutoMode
-    if(OneRazPosition3_6==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
-       old_HowLongTimeBeep = HowLongTimeBeep;       
-       
-       // Исполнить один раз чтоб галочка соответствовала значению      
-        PositionUpCount=map(HowLongTimeBeep,0,50,-180,-230);
-        // Исполнить один раз чтоб галочка соответствовала значению
-              
-        OneRazPosition3_6=true;
-      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
-      old_PositionUpCount3_6=PositionUpCount; // Постоянно присваивать в старое значение
-      HowLongTimeBeep=abs(    (180 + PositionUpCount)   );   
-  
-       HowLongTimeBeep=constrain(HowLongTimeBeep,0,50);
-       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
-       if( PositionUpCount<-230){PositionUpCount=-230;}  // Защита от выхода за диапазон)
 
-       if(PositionRightCount ==3){ // save
-          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
-          EEPROM.writeByte(23, HowLongTimeBeep);
-          EEPROM.commit();
-
-          saveBlink_sensOnValue3_6=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
-          saveBlink3_6=true; // Чтобы моргала надпись save
-          PositionRightCount =2; // Вернуть ползунок по горизонтали
-       }
-       if(PositionRightCount ==1){ // back
-
-       if(saveBlink_sensOnValue3_6 != true){
-          HowLongTimeBeep=old_HowLongTimeBeep;
-       }
-
-      MenuLayer=13;PositionUpCount=56;
-    }
-}
-if(MenuLayer == 108){ // 3.7 
-    if(OneRazPosition3_7==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
-       old_HowLongTimeBeepMute = HowLongTimeBeepMute;       
-       
-       // Исполнить один раз чтоб галочка соответствовала значению      
-        PositionUpCount=map(HowLongTimeBeepMute,0,50,-180,-230);
-        // Исполнить один раз чтоб галочка соответствовала значению
-              
-        OneRazPosition3_7=true;
-      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
-      old_PositionUpCount3_7=PositionUpCount; // Постоянно присваивать в старое значение
-      HowLongTimeBeepMute=abs(    (180 + PositionUpCount)   );   
-  
-       HowLongTimeBeepMute=constrain(HowLongTimeBeepMute,0,50);
-       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
-       if( PositionUpCount<-230){PositionUpCount=-230;}  // Защита от выхода за диапазон)
-
-       if(PositionRightCount ==3){ // save
-          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
-          EEPROM.writeByte(24, HowLongTimeBeepMute);
-          EEPROM.commit();
-
-          saveBlink_sensOnValue3_7=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
-          saveBlink3_7=true; // Чтобы моргала надпись save
-          PositionRightCount =2; // Вернуть ползунок по горизонтали
-       }
-       if(PositionRightCount ==1){ // back
-
-          if(saveBlink_sensOnValue3_7 != true){
-              HowLongTimeBeepMute=old_HowLongTimeBeepMute;
-          }
-
-      MenuLayer=13;PositionUpCount=57;
-      }
-}
 // Перебираем вкладку 3
 
 // Перебираем вкладку 4
@@ -2501,12 +2553,12 @@ if(MenuLayer == 401){ // 4.1
     //else                         {  u8g2.drawStr(97, 12, "Off");  }
     
     u8g2.drawLine(0, 27, 105, 27);
-    
+    /*
     u8g2.drawStr(0, 39, "3.6 Set. how"); 
                   u8g2.setCursor(97,39);  
                   u8g2.print(float(HowLongTimeBeep)/10 ,1);
     u8g2.drawStr(0, 49, "long time Beep"); // write something to the internal memory 
-   
+   */
 
    //u8g2.setCursor(95,12);  
                           
@@ -2514,6 +2566,7 @@ if(MenuLayer == 401){ // 4.1
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
   }
+  /*
   if (MenuLayer == 33 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -2528,12 +2581,12 @@ if(MenuLayer == 401){ // 4.1
     
     u8g2.drawLine(0, 27, 105, 27);
     
-    /*
+    
     u8g2.drawStr(0, 39, "3.8 abc"); 
                   u8g2.setCursor(97,39);  
                   u8g2.print(float(HowLongTimeBeep)/10 ,1);
     u8g2.drawStr(0, 49, "defg"); // write something to the internal memory 
-    */
+    
 
    //u8g2.setCursor(95,12);  
                           
@@ -2541,6 +2594,7 @@ if(MenuLayer == 401){ // 4.1
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
   }  
+  */
   if (MenuLayer == 300 )  { // 3.1
     
       if(saveBlink3_0==false){
