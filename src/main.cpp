@@ -61,14 +61,17 @@ void SaveBlink3_6();
 void SaveBlink3_7();
 void SaveBlink4_1();
 void SaveBlink5_1();
+void SaveBlink5_2();
+void SaveBlink5_3();
+void SaveBlink5_4();
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 //U8G2_SSD1306_128X64_NONAME_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* cs=*/ 12, /* dc=*/ 14, /* reset=*/ 23); //Работает в ардуино иде
 //U8G2_SSD1306_128X64_NONAME_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* cs=*/ 14, /* dc=*/ 14, /* reset=*/ 23);
 // End of constructor list
 
 // Переменные для работы меню
-int16_t MenuLayer = -1; //Начальный 0 слой где видны все пункты. 2 - вход в меню CirclY
-int16_t PositionUpCount=1; //Ползунок по вертикали
+int16_t MenuLayer = 1; //Начальный 0 слой где видны все пункты. 2 - вход в меню CirclY
+int16_t PositionUpCount=5; //Ползунок по вертикали
 int8_t PositionRightCount=1;
 bool EnableSdvig=false; //Чтоб ползунок один раз сдвигался 
 int CirclY = 45; // Позиция курсора
@@ -226,7 +229,7 @@ int16_t old_PositionUpCount4_1;
 bool saveBlink_EcoBright4_1;
 // Переменные для вкладки 4
 
-// Переменные для вкладки 5
+// Переменные для вкладки 5 
 bool saveBlink5_1=false;
 bool OneRazGalochka5_1=false; // Один раз завести правильное значение из меню
 int16_t old_PositionUpCount5_1;
@@ -237,6 +240,18 @@ bool OneRazPosition5_2=false; // Один раз завести правильн
 int16_t old_BrightnessDayLight;
 int16_t old_PositionUpCount5_2;
 bool saveBlink_sensOnValue5_2;
+
+bool saveBlink5_3=false;
+bool OneRazPosition5_3=false; // Один раз завести правильное значение из меню
+int16_t old_BrightnessInEcoMode;
+int16_t old_PositionUpCount5_3;
+bool saveBlink_sensOnValue5_3;
+
+bool saveBlink5_4=false;
+bool OneRazPosition5_4=false; // Один раз завести правильное значение из меню
+int16_t old_FadingWhiteWhenTurning;
+int16_t old_PositionUpCount5_4;
+bool saveBlink_sensOnValue5_4;
 // Переменные для вкладки 5
 
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
@@ -266,7 +281,10 @@ bool saveBlink_sensOnValue5_2;
   bool TactPovorotnikiToLightOrBeep; // 4.2 //Будет ли стрелочка в такт со светом моргать или с буззером 
 
   bool ActivateDayLight = false; // 5.1
-  bool BrightnessDayLight = false; // 5.2
+  int8_t BrightnessDayLight; // 5.2
+  int8_t BrightnessInEcoMode; // 5.3
+  //int8_t BrightnessOnActivatedPassingLights; // 5.4
+  int8_t FadingWhiteWhenTurning; // 5.4
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
@@ -329,8 +347,10 @@ void setup(void) {
   HowLongTimeBeepMute=EEPROM.readByte(24);
 
   TactPovorotnikiToLightOrBeep=EEPROM.readByte(25);
-  ActivateDayLight=EEPROM.readBool(26);
-  BrightnessDayLight=EEPROM.readByte(27);
+  ActivateDayLight            =EEPROM.readBool(26);
+  BrightnessDayLight          =EEPROM.readByte(27);
+  BrightnessInEcoMode         =EEPROM.readByte(28); // 5.3
+  FadingWhiteWhenTurning      =EEPROM.readByte(29); // 5.4
 
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
@@ -1708,23 +1728,28 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     
     OneRazGalochka5_1 = false;
 
+    OneRazPosition5_2 = false; // Сброс один раз исполнить
+    saveBlink_sensOnValue5_2=false;
     //OneRazGalochka3_3 = false;
 }
  if(MenuLayer == 51){ //Если в подменю 2.1 Нажата кнопка влево то выйти в главное меню
-  //if(PositionUpCount < 100){PositionUpCount = 100;} // Ограничить вертикальный ползунок при движении вверх
 
-    if(PositionUpCount==102){   CirclY = 20-1;   }  //TunL  //Перебираем ползунок
-    if(PositionUpCount==103){   CirclY = 45-1;   }          //Перебираем ползунок
-    //if(PositionUpCount==102){   CirclY = 40-1;   }        //Перебираем ползунок
+    if(PositionUpCount==102){   CirclY = 7;   }  //TunL  //Перебираем ползунок
+    if(PositionUpCount==103){   CirclY = 37;   }          //Перебираем ползунок
 
-    // if(PositionRightCount == 2 && PositionUpCount==102){ MenuLayer=501; PositionUpCount=120; }//Если курсор первая строка и есть нажатие вправо - перейти в 2.11 //TunL
-    // if(PositionRightCount == 2 && PositionUpCount==103){ MenuLayer=502; PositionUpCount=120; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
+     if(PositionRightCount == 2 && PositionUpCount==102){ MenuLayer=503; PositionUpCount=180; }//Если курсор первая строка и есть нажатие вправо - перейти в 2.11 //TunL
+     if(PositionRightCount == 2 && PositionUpCount==103){ MenuLayer=504; PositionUpCount=180; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
     
     if(PositionUpCount==101){    MenuLayer=50;  } //При скролле вверх перейти на верхнюю часть страницы
     if(PositionRightCount == 0){ MenuLayer=1;  PositionUpCount=5; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
     
     //OneRazGalochka5_1 = false;
     //OneRazGalochka3_3 = false;
+    OneRazPosition5_3 = false; // Сброс один раз исполнить
+    saveBlink_sensOnValue5_3=false;
+
+    OneRazPosition5_4 = false; // Сброс один раз исполнить
+    saveBlink_sensOnValue5_4=false;
 }
  if(MenuLayer == 501){ // 4.1 + Звук от поворотников
     if(PositionRightCount ==1){ // back
@@ -1775,6 +1800,75 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               BrightnessDayLight=old_BrightnessDayLight;
           }
        MenuLayer=50;PositionUpCount=101;
+       }
+}
+ if(MenuLayer == 503){ // 2.6 StartPersentBright
+    if(OneRazPosition5_3==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_BrightnessInEcoMode = BrightnessInEcoMode;
+       //PositionUpCount=old_PositionUpCount2_4;
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(BrightnessInEcoMode,0,100,-180,-280);
+       // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition5_3=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount5_3=PositionUpCount; // Постоянно присваивать в старое значение
+      BrightnessInEcoMode=abs(    (180 + PositionUpCount)   );
+    
+       BrightnessInEcoMode=constrain(BrightnessInEcoMode,0,100);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
+
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+        
+        EEPROM.writeByte(28,BrightnessInEcoMode);EEPROM.commit();
+        
+          saveBlink_sensOnValue5_3=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink5_3=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+          if(saveBlink_sensOnValue5_3 != true){
+              BrightnessInEcoMode=old_BrightnessInEcoMode;
+          }
+       MenuLayer=51;PositionUpCount=102;
+       }
+}
+
+ if(MenuLayer == 504){ // 2.6 StartPersentBright
+    if(OneRazPosition5_4==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_FadingWhiteWhenTurning = FadingWhiteWhenTurning;
+       //PositionUpCount=old_PositionUpCount2_4;
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(FadingWhiteWhenTurning,0,100,-180,-280);
+       // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition5_4=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount5_4=PositionUpCount; // Постоянно присваивать в старое значение
+      FadingWhiteWhenTurning=abs(    (180 + PositionUpCount)   );
+    
+       FadingWhiteWhenTurning=constrain(FadingWhiteWhenTurning,0,100);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
+
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+        
+        EEPROM.writeByte(29,FadingWhiteWhenTurning);EEPROM.commit();
+        
+          saveBlink_sensOnValue5_4=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink5_4=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+          if(saveBlink_sensOnValue5_4 != true){
+              FadingWhiteWhenTurning=old_FadingWhiteWhenTurning;
+          }
+       MenuLayer=51;PositionUpCount=103;
        }
 }
 // Перебираем вкладку 5
@@ -3144,11 +3238,30 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
 
     u8g2.drawStr(0, 32+17, "5.2 Brightness");  
     u8g2.drawStr(0, 42+17, "Day Light");
-                           //u8g2.setCursor(97,32+17);  
-                           //u8g2.print(SettingMaxVolumeOnSpeed);
+                           u8g2.setCursor(97,32+17);  
+                           u8g2.print(BrightnessDayLight);
+/*
     if(VolumeOnSpeed == true){      u8g2.drawStr(97, 32+17, "On");   }
     else                     {      u8g2.drawStr(97, 32+17, "Off");  }
+*/
+    
+    u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
+    u8g2.sendBuffer();          // transfer internal memory to the display 
+  }
+  if (MenuLayer == 51 ) {
+      u8g2.clearBuffer();          // clear the internal memory
+    u8g2.setFont(u8g2_font_6x12_tr);
+    u8g2.drawStr(0, 12, "5.3 Brightness "); // write something to the internal memory 3.3 Volume On Time
+    u8g2.drawStr(0, 22, "In Eco Mode");
+                           u8g2.setCursor(97,12);  
+                           u8g2.print(BrightnessInEcoMode);
+    
+    u8g2.drawLine(0, 27, 105, 27);
 
+    u8g2.drawStr(0, 39, "5.4 Fading White");
+    u8g2.drawStr(0, 49, "When Turning"); // write something to the internal memory 
+                           u8g2.setCursor(97,39);  
+                           u8g2.print(FadingWhiteWhenTurning);                     
     
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
@@ -3193,9 +3306,10 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           u8g2.clearBuffer();          // clear the internal memory
   
           u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
-          u8g2.drawStr(10, 7,   "5.2 BrightnessDayLight"); // write something to the internal memory
+          u8g2.drawStr(0, 7,   "5.2 BrightnessDayLight"); // write something to the internal memory
           
-          u8g2.drawStr(0, 35,   "Val KM/h: ");
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
           u8g2.setFont(u8g2_font_10x20_tr);	      
     
           u8g2.setCursor(55,35);  u8g2.print(BrightnessDayLight);         
@@ -3218,7 +3332,75 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           u8g2.sendBuffer();          // transfer internal memory to the display
       }
       else{
-          SaveBlink2_6();
+          SaveBlink5_2();
+      }  
+  }
+  if (MenuLayer == 503 ) { // 2.6
+      if(saveBlink5_3 == false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.3 BrightnessInEcoMode"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessInEcoMode);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+          SaveBlink5_3();
+      }  
+  }
+  if (MenuLayer == 504 ) { // 2.6
+      if(saveBlink5_4 == false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.4 FadingWhiteWhenTurning"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(FadingWhiteWhenTurning);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+          SaveBlink5_4();
       }  
   }
 // Отрисовка меню
@@ -5060,7 +5242,223 @@ void SaveBlink5_1(){
           counterSaveBlink5_1=0;
    }
 }
+void SaveBlink5_2(){
+  static int8_t counterSaveBlink5_2;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink5_2++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink5_2 == 1){
 
+
+     u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.2 BrightnessDayLight"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessDayLight);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+   
+   if(counterSaveBlink5_2 == 2){
+           u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.2 BrightnessDayLight"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessDayLight);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+
+          saveBlink5_2=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink5_2=0;
+   }
+}
+void SaveBlink5_3(){
+  static int8_t counterSaveBlink5_3;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink5_3++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink5_3 == 1){
+
+
+     u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.3 BrightnessInEcoMode"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessInEcoMode);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+   
+   if(counterSaveBlink5_3 == 2){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.3 BrightnessInEcoMode"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessInEcoMode);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+
+          saveBlink5_3=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink5_3=0;
+   }
+}
+
+void SaveBlink5_4(){
+  static int8_t counterSaveBlink5_4;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink5_4++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink5_4 == 1){
+
+
+    u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.4 FadingWhiteWhenTurning"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(FadingWhiteWhenTurning);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+   
+   if(counterSaveBlink5_4 == 2){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.4 FadingWhiteWhenTurning"); // write something to the internal memory
+          
+          //u8g2.drawStr(0, 35,   "Val KM/h: ");
+            u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(FadingWhiteWhenTurning);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+
+          saveBlink5_4=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink5_4=0;
+   }
+}
 /*
 void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
 unsigned long& lastDebounceTime,uint8_t debounceDelay){
