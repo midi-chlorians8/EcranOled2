@@ -3129,7 +3129,7 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
   }
 
-BrightnessDayLight
+//BrightnessDayLight
   if (MenuLayer == 50 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
