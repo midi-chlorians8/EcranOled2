@@ -3,6 +3,8 @@
 #include <Arduino.h>
 bool RightInt=false;
 bool OnSound = false; //Когда 
+bool OnSoundR; //Для ристования стрелки по звуку
+bool OnSoundL; //Для ристования стрелки по звуку
 
 #include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
 #include "DebounceV2.h" // Обработка вертикальных кнопок
@@ -58,6 +60,7 @@ void SaveBlink3_21();
 void SaveBlink3_6();
 void SaveBlink3_7();
 void SaveBlink4_1();
+void SaveBlink5_1();
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 //U8G2_SSD1306_128X64_NONAME_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* cs=*/ 12, /* dc=*/ 14, /* reset=*/ 23); //Работает в ардуино иде
 //U8G2_SSD1306_128X64_NONAME_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* cs=*/ 14, /* dc=*/ 14, /* reset=*/ 23);
@@ -221,7 +224,20 @@ bool saveBlink4_1=false;
 bool OneRazGalochka4_1=false; // Один раз завести правильное значение из меню
 int16_t old_PositionUpCount4_1;
 bool saveBlink_EcoBright4_1;
-// Переменные для вкладки 3
+// Переменные для вкладки 4
+
+// Переменные для вкладки 5
+bool saveBlink5_1=false;
+bool OneRazGalochka5_1=false; // Один раз завести правильное значение из меню
+int16_t old_PositionUpCount5_1;
+bool saveBlink_EcoBright5_1;
+
+bool saveBlink5_2=false;
+bool OneRazPosition5_2=false; // Один раз завести правильное значение из меню
+int16_t old_BrightnessDayLight;
+int16_t old_PositionUpCount5_2;
+bool saveBlink_sensOnValue5_2;
+// Переменные для вкладки 5
 
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
   bool TunL=false;              //2.1  //Включает и выключает свет при вьезде в туннель
@@ -248,6 +264,9 @@ bool saveBlink_EcoBright4_1;
 
   bool DrawPovorotniki = false; // 4.1
   bool TactPovorotnikiToLightOrBeep; // 4.2 //Будет ли стрелочка в такт со светом моргать или с буззером 
+
+  bool ActivateDayLight = false; // 5.1
+  bool BrightnessDayLight = false; // 5.2
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
@@ -310,6 +329,9 @@ void setup(void) {
   HowLongTimeBeepMute=EEPROM.readByte(24);
 
   TactPovorotnikiToLightOrBeep=EEPROM.readByte(25);
+  ActivateDayLight=EEPROM.readBool(26);
+  BrightnessDayLight=EEPROM.readByte(27);
+
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);
@@ -380,10 +402,10 @@ if(MenuLayer==0 || MenuLayer==1){
                             if( PositionRightCount == 1){ MenuLayer=30;  PositionUpCount=100; }
                         }
   if(PositionUpCount==4){   CirclY = 48; MenuLayer=0;  
-                            if(PositionRightCount == 1) { MenuLayer = 40;PositionUpCount=1; } // Заглушка
+                            if(PositionRightCount == 1) { MenuLayer = 40;PositionUpCount=1; } 
                         }
   if(PositionUpCount==5){   CirclY = 8;  MenuLayer=1;  
-                            if(PositionRightCount == 1) {PositionRightCount=0;} // Заглушка
+                            if(PositionRightCount == 1) {MenuLayer = 50;PositionUpCount=100;} 
                         }
   if(PositionUpCount==6){   CirclY = 18; MenuLayer=1;  
                             if(PositionRightCount == 1) {PositionRightCount=0;} // Заглушка
@@ -481,7 +503,7 @@ if(MenuLayer == 13){
   if(PositionUpCount== 55)  { MenuLayer = 12; }         //При скролле вверх перейти на верхнюю часть страницы
   //if(PositionUpCount== 56)  { MenuLayer = 13; }
   //if(PositionUpCount > 57)  {MenuLayer=10; PositionUpCount = 50; }   //Ограничить ползунок вниз
-  if(PositionUpCount > 57)  {MenuLayer=14; PositionUpCount = 58; }   //Ограничить ползунок вниз
+  if(PositionUpCount == 58 || PositionUpCount == 59)  {MenuLayer=14; PositionUpCount = 58; }   //Ограничить ползунок вниз
 
     OneRazPosition3_6 = false;
     saveBlink_sensOnValue3_6 = false;
@@ -1368,7 +1390,7 @@ if(MenuLayer == 211){ // 2.11 Eco bright
 
 // Перебираем вкладку 3
 if(MenuLayer == 30){ //Если в подменю 2.1 Нажата кнопка влево то выйти в главное меню
-if(PositionUpCount < 100){PositionUpCount = 100;} // Ограничить вертикальный ползунок при движении вверх
+  if(PositionUpCount < 100){PositionUpCount = 100;} // Ограничить вертикальный ползунок при движении вверх
 
     if(PositionUpCount==100){   CirclY = 20-1;   }  //TunL  //Перебираем ползунок
     if(PositionUpCount==101){   CirclY = 45-1;   }          //Перебираем ползунок
@@ -1651,7 +1673,6 @@ if(MenuLayer == 40){
   */
   
 }
-
 if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     if(PositionRightCount ==1){ // back
         MenuLayer=40;PositionUpCount=1;
@@ -1669,11 +1690,102 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     //PositionUpCount=constrain(PositionUpCount,120,121);
     //Serial.println("201!");
 }
+// Перебираем вкладку 4
+
+// Перебираем вкладку 5
+ if(MenuLayer == 50){ //Если в подменю 2.1 Нажата кнопка влево то выйти в главное меню
+  if(PositionUpCount < 100){PositionUpCount = 100;} // Ограничить вертикальный ползунок при движении вверх
+
+    if(PositionUpCount==100){   CirclY = 20-1;   }  //TunL  //Перебираем ползунок
+    if(PositionUpCount==101){   CirclY = 45-1;   }          //Перебираем ползунок
+    //if(PositionUpCount==102){   CirclY = 40-1;   }        //Перебираем ползунок
+
+    if(PositionRightCount == 2 && PositionUpCount==100){ MenuLayer=501; PositionUpCount=120; }//Если курсор первая строка и есть нажатие вправо - перейти в 2.11 //TunL
+    if(PositionRightCount == 2 && PositionUpCount==101){ MenuLayer=502; PositionUpCount=180; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
+    
+    if(PositionUpCount==102){    MenuLayer=51;  } //При скролле вниз перейти на нижнюю часть страницы
+    if(PositionRightCount == 0){ MenuLayer=1;  PositionUpCount=5; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
+    
+    OneRazGalochka5_1 = false;
+
+    //OneRazGalochka3_3 = false;
+}
+ if(MenuLayer == 51){ //Если в подменю 2.1 Нажата кнопка влево то выйти в главное меню
+  //if(PositionUpCount < 100){PositionUpCount = 100;} // Ограничить вертикальный ползунок при движении вверх
+
+    if(PositionUpCount==102){   CirclY = 20-1;   }  //TunL  //Перебираем ползунок
+    if(PositionUpCount==103){   CirclY = 45-1;   }          //Перебираем ползунок
+    //if(PositionUpCount==102){   CirclY = 40-1;   }        //Перебираем ползунок
+
+    // if(PositionRightCount == 2 && PositionUpCount==102){ MenuLayer=501; PositionUpCount=120; }//Если курсор первая строка и есть нажатие вправо - перейти в 2.11 //TunL
+    // if(PositionRightCount == 2 && PositionUpCount==103){ MenuLayer=502; PositionUpCount=120; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
+    
+    if(PositionUpCount==101){    MenuLayer=50;  } //При скролле вверх перейти на верхнюю часть страницы
+    if(PositionRightCount == 0){ MenuLayer=1;  PositionUpCount=5; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
+    
+    //OneRazGalochka5_1 = false;
+    //OneRazGalochka3_3 = false;
+}
+ if(MenuLayer == 501){ // 4.1 + Звук от поворотников
+    if(PositionRightCount ==1){ // back
+        MenuLayer=50;PositionUpCount=100;
+    }
+    if(PositionRightCount ==3){ // save
+        if(PositionUpCount ==120){ ActivateDayLight=true; }
+        if(PositionUpCount ==121){ ActivateDayLight=false;}
+        //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+        EEPROM.writeBool(26, ActivateDayLight);
+        EEPROM.commit();
+
+        saveBlink5_1=true;
+        PositionRightCount =2;
+    }
+    //PositionUpCount=constrain(PositionUpCount,120,121);
+    //Serial.println("201!");
+}
+ if(MenuLayer == 502){ // 2.6 StartPersentBright
+    if(OneRazPosition5_2==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_BrightnessDayLight = BrightnessDayLight;
+       //PositionUpCount=old_PositionUpCount2_4;
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(BrightnessDayLight,0,100,-180,-280);
+       // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition5_2=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount5_2=PositionUpCount; // Постоянно присваивать в старое значение
+      BrightnessDayLight=abs(    (180 + PositionUpCount)   );
+    
+       BrightnessDayLight=constrain(BrightnessDayLight,0,100);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
+
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+        
+        EEPROM.writeByte(27,BrightnessDayLight);//StopPersentBright
+        EEPROM.commit();
+          saveBlink_sensOnValue5_2=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink5_2=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+          if(saveBlink_sensOnValue5_2 != true){
+              BrightnessDayLight=old_BrightnessDayLight;
+          }
+       MenuLayer=50;PositionUpCount=101;
+       }
+}
+// Перебираем вкладку 5
 // Отрисовка меню
 
   if (MenuLayer == -1){
       u8g2.clearBuffer();          // clear the internal memory   
       
+      static unsigned long timingOn; // Время Писка
+      static int8_t Perebor=0; // Cоставная часть пищательного механизма
+
       if(DrawPovorotniki==false){
         u8g2.setFont(u8g2_font_7x14B_tr);	
         u8g2.drawStr(20, 35-3, "Glavnij Ekran");  //u8g2.drawStr(35+10, 40-3, "Off");
@@ -1698,16 +1810,19 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               }
           } // Если включена отрисовка стрелочки в зависимости от света
           if (TactPovorotnikiToLightOrBeep == 0){ // Если включена отрисовка стрелочки в зависимости от звука
-
+              if(OnSoundR == true && Perebor == 0){
+                  u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
+              }
+              if(OnSoundL == true && Perebor == 0){
+                  u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
+              }
           }
           // Стрелочка ресуется в соответствии с могранием поворотника
 
       }                           // Если включена отрисовка поворотников
       // Обработка  звука включение и выключение буззера при повороте
 
-      static unsigned long timingOn; // Время Писка
-      static int8_t Perebor=0; // Cоставная часть пищательного механизма
-
+      
       //if (TactPovorotnikiToLightOrBeep == 1){ // Если включен звук в зависимости от света
       // Включение режима  звука от правого поворотника
       if(  
@@ -1717,6 +1832,7 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 1 && AutomaticModeActivateR==0 ) )
            {
               OnSound = true; //timingOn=millis(); 
+              OnSoundR = true; //Для ристования стрелки по звуку
            }
       // Включение режима звука от правого поворотника  
 
@@ -1728,9 +1844,10 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 1 && AutomaticModeActivateL==0 ) )
            {
               OnSound = true; //timingOn=millis(); 
+              OnSoundL = true; //Для ристования стрелки по звуку
            }
       // Включение режима звука от левого поворотника 
-      else{OnSound = false;Perebor=0;timingOn=millis(); } 
+      else{OnSound = false; Perebor=0;timingOn=millis();OnSoundR=false;OnSoundL=false; } 
               
       //}                                     // Если включен звук в зависимости от света     
          // Обработка  звука включение и выключение буззера при повороте
@@ -1782,7 +1899,7 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
     
-    u8g2.drawStr(5, 10,   "5 Punkt menu"); // write something to the internal memory
+    u8g2.drawStr(5, 10,   "5 Dimensions"); // write something to the internal memory
     u8g2.drawStr(5, 25-3, "6 Punkt menu");// write something to the internal memory
     u8g2.drawStr(5, 35-3, "Exit ");
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
@@ -2954,8 +3071,6 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       }  
   }
   
-
-
   if (MenuLayer == 40 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -3012,6 +3127,99 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           SaveBlink4_1();       
       }
       PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
+  }
+
+BrightnessDayLight
+  if (MenuLayer == 50 ) {
+    u8g2.clearBuffer();          // clear the internal memory
+    u8g2.setFont(u8g2_font_6x12_tr);
+    u8g2.drawStr(30, 7, " 5 Gabariti "); // write something to the internal memory
+
+    u8g2.drawStr(0, 25-3, "5.1 Activate"); // write something to the internal memory 
+    u8g2.drawStr(0, 32, "DayLight"); // write something to the internal memory
+    if(ActivateDayLight == true)     {      u8g2.drawStr(97, 25-3, "On");   }
+    else                             {      u8g2.drawStr(97, 25-3, "Off");  }
+
+    u8g2.drawLine(0, 32+5, 105, 32+5);
+
+    u8g2.drawStr(0, 32+17, "5.2 Brightness");  
+    u8g2.drawStr(0, 42+17, "Day Light");
+                           //u8g2.setCursor(97,32+17);  
+                           //u8g2.print(SettingMaxVolumeOnSpeed);
+    if(VolumeOnSpeed == true){      u8g2.drawStr(97, 32+17, "On");   }
+    else                     {      u8g2.drawStr(97, 32+17, "Off");  }
+
+    
+    u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
+    u8g2.sendBuffer();          // transfer internal memory to the display 
+  }
+  if (MenuLayer == 501 )  { // 3.1
+    
+      if(saveBlink5_1==false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(5, 7,   "5.1 ActivateDayLight"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(35+10, 25-3, "On");  u8g2.drawStr(35+10, 40-3, "Off");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka5_1==false){
+              if(ActivateDayLight==true) { PositionUpCount=120; }
+              if(ActivateDayLight==false){ PositionUpCount=121; }
+          OneRazGalochka5_1=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(95-10,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(95-10,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0, 50, "back");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+        SaveBlink5_1();       
+      }
+      PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
+  } 
+  if (MenuLayer == 502 ) { // 2.6
+      if(saveBlink5_2 == false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(10, 7,   "5.2 BrightnessDayLight"); // write something to the internal memory
+          
+          u8g2.drawStr(0, 35,   "Val KM/h: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessDayLight);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+          SaveBlink2_6();
+      }  
   }
 // Отрисовка меню
 
@@ -4706,6 +4914,7 @@ void SaveBlink2_1(){ // Анимация моргания слова save в п�
    }
           
 }
+
 void SaveBlink4_1(){
   static int8_t counterSaveBlink4_1;
   static unsigned long timing;
@@ -4775,6 +4984,82 @@ void SaveBlink4_1(){
    }
 }
 
+void SaveBlink5_1(){
+  static int8_t counterSaveBlink5_1;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink5_1++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink5_1 == 1){
+
+
+      u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(5, 7,   "5.1 ActivateDayLight"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(35+10, 25-3, "On");  u8g2.drawStr(35+10, 40-3, "Off");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka5_1==false){
+              if(ActivateDayLight==true) { PositionUpCount=120; }
+              if(ActivateDayLight==false){ PositionUpCount=121; }
+          OneRazGalochka5_1=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(95-10,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(95-10,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "   "); 
+          u8g2.drawStr(0, 50, "back");
+
+          //u8g2.setFont(u8g2_font_7x14_tf);
+          //u8g2.drawStr(52, 60, "0-1");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+   
+   if(counterSaveBlink5_1 == 2){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(5, 7,   "5.1 ActivateDayLight"); // write something to the internal memory
+	 
+          u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(35+10, 25-3, "On");  u8g2.drawStr(35+10, 40-3, "Off");
+      
+          // Исполнить один раз чтоб галочка соответствовала значению
+          if(OneRazGalochka5_1==false){
+              if(ActivateDayLight==true) { PositionUpCount=120; }
+              if(ActivateDayLight==false){ PositionUpCount=121; }
+          OneRazGalochka5_1=true;
+          }
+          // Исполнить один раз чтоб галочка соответствовала значению
+          u8g2.setFont(u8g2_font_7x14_tr);	
+          if(PositionUpCount==120){      u8g2.drawStr(95-10,21,    "V");      }
+          if(PositionUpCount==121){      u8g2.drawStr(95-10,21+15, "V");      }
+          u8g2.drawTriangle(108,62, 128,57, 108,52); 
+          u8g2.drawTriangle(20,62, 0,57, 20,52);
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0, 50, "back");
+
+          //u8g2.setFont(u8g2_font_7x14_tf);
+          //u8g2.drawStr(52, 60, "0-1");
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+
+          saveBlink5_1=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink5_1=0;
+   }
+}
 
 /*
 void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
