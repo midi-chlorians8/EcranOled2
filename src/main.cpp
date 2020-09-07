@@ -1,258 +1,24 @@
 //04.09
-
 #include <Arduino.h>
-bool RightInt=false;
-bool OnSound = false; //Когда 
-bool OnSoundR; //Для ристования стрелки по звуку
-bool OnSoundL; //Для ристования стрелки по звуку
+//bool RightInt=false; // Удалить похоже
+bool OneRazOffGabarit=true; //Габариты. Один раз выкл габариты
+bool AftherOn=false; //Габариты. Cлужебный буль. Отключает свечение габаритов на время пока светит поворотник 
+int8_t Mode; //Влияет на степень "Яркости" Габаритов. Может быть ECO(0) DRIVE(1) SPORT(2) .
 
 #include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
-#include "DebounceV2.h" // Обработка вертикальных кнопок
-int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
+#include "DebounceUpDown.h"      // Обработка вертикальных кнопок
 
-bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
-
-// Переменные для того чтоб в 101 при переборе значения поворотники моргали
-bool change101 = false; // Флаг что кнопка нажата и значение изменилось
-unsigned long timing101;  //для задержки в 500 мсек в 1.1 (101)
-// Переменные для того чтоб в 101 при переборе значения поворотники моргали
-bool AutomaticModeActivateR; // Активирует автоматический режим. (Если On cчитано из памяти) . Для правого поворотника   >0
-bool AutomaticModeActivateL;
-#include "PovorotnikiLR.h" // Включение и выключение поворотников
-
-bool OneRazSavePRK_GE;// Для корректного сбороса автоматического режима правого поворотника
-bool OneRazSavePRK_GE2L;// Для корректного сбороса автоматического режима левого поворотника
-
-#include <U8g2lib.h>    // Для экрана
-#include "EEPROM.h" 
-
+// Для экрана
+#include <U8g2lib.h>    
 #ifdef U8X8_HAVE_HW_I2C
 #include <Wire.h>
 #endif
-#ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
-#endif
-void SaveBlink1_1();
-void SaveBlink1_2();
-void SaveBlink1_3(); 
-void SaveBlink1_4(); 
-void SaveBlink1_5(); 
-void SaveBlink1_6();
-
-void SaveBlink1_9();
-
-void SaveBlink2_1();
-void SaveBlink2_2();
-void SaveBlink2_3();
-void SaveBlink2_4();
-void SaveBlink2_5();
-void SaveBlink2_6();
-void SaveBlink2_7();
-void SaveBlink2_8();
-void SaveBlink2_9();
-void SaveBlink2_10();
-void SaveBlink2_11();
-void SaveBlink3_0();
-void SaveBlink3_1();
-void SaveBlink3_11();
-void SaveBlink3_2();
-void SaveBlink3_21();
-void SaveBlink3_6();
-void SaveBlink3_7();
-void SaveBlink4_1();
-void SaveBlink5_1();
-void SaveBlink5_2();
-void SaveBlink5_3();
-void SaveBlink5_4();
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 //U8G2_SSD1306_128X64_NONAME_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* cs=*/ 12, /* dc=*/ 14, /* reset=*/ 23); //Работает в ардуино иде
-//U8G2_SSD1306_128X64_NONAME_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* cs=*/ 14, /* dc=*/ 14, /* reset=*/ 23);
-// End of constructor list
+// Для экрана
+#include "EEPROM.h" 
 
-// Переменные для работы меню
-int16_t MenuLayer = 1; //Начальный 0 слой где видны все пункты. 2 - вход в меню CirclY
-int16_t PositionUpCount=5; //Ползунок по вертикали
-int8_t PositionRightCount=1;
-bool EnableSdvig=false; //Чтоб ползунок один раз сдвигался 
-int CirclY = 45; // Позиция курсора
-unsigned long FirstZamerMLayerMin1_Val; // Замеряет время нажатия кнопок правого и левого поворотников. Для входа в главное меню
-bool OneRazMLayerMin1=false; // При зажатии 2х кнопок чтоб стартовый замер был один раз
-// Переменные для работы меню
-
-// Переменные для вкладки 1
-bool saveBlink1_1=false;
-bool OneRazPosition1_1=false;     // Один раз завести правильное значение из меню
-int16_t old_SpeedPovorotnikBlink; // Старое значения скорости моргания поворотника
-int16_t old_PositionUpCount1_1;
-bool saveBlink_sensOnValue1_1;
-
-bool OneRazPosition1_2=false; 
-bool OneRazGalochka1_2=false; // Используется для того чтоб галочка ставилась напротив текущего значения
-bool saveBlink1_2=false;
-bool saveBlink_sensOnValue1_2=false;
-
-bool saveBlink1_3=false;
-bool OneRazPosition1_3=false;     // Один раз завести правильное значение из меню
-int16_t old_CountBlinkIntMode; // Старое значения скорости моргания поворотника
-int16_t old_PositionUpCount1_3;
-bool saveBlink_sensOnValue1_3;
-
-bool OneRazPosition1_4=false; 
-bool OneRazGalochka1_4=false; // Используется для того чтоб галочка ставилась напротив текущего значения
-bool saveBlink1_4=false;
-bool saveBlink_sensOnValue1_4=false;
-
-bool saveBlink1_5=false;    
-int16_t old_TimePressToOnAutoMode; // Старое значение
-int16_t old_PositionUpCount1_5;
-bool OneRazPosition1_5 = false; // Один раз завести правильное значение из меню
-bool saveBlink_sensOnValue1_5 = false;
-
-bool OneRazPosition1_6=false; 
-bool OneRazGalochka1_6=false; // Используется для того чтоб галочка ставилась напротив текущего значения
-bool saveBlink1_6=false;
-bool saveBlink_sensOnValue1_6=false;
-
-bool OneRazPosition1_9=false;  //!!
-bool OneRazGalochka1_9=false; // Используется для того чтоб галочка ставилась напротив текущего значения
-bool saveBlink1_9=false;
-bool saveBlink_sensOnValue1_9=false;
-// Переменные для вкладки 1
-
-// Переменные для вкладки 2
-bool OneRazGalochka2_1=false; // Используется для того чтоб галочка ставилась напротив текущего значения
-bool saveBlink2_1=false;
-
-
-int16_t old_sensOnValue=0;
-bool OneRazPosition2_2=false;
-bool saveBlink2_2=false;// Буль для моргания надписи save Подпункт 2.2
-bool saveBlink_sensOnValue2_2=false;
-
-bool saveBlink2_3=false;
-bool OneRazGalochka2_3=false;
-
-bool saveBlink2_4=false;
-bool OneRazPosition2_4=false; // Один раз завести правильное значение из меню
-int16_t old_StartToAccelValue;
-int16_t old_PositionUpCount2_4;
-bool saveBlink_sensOnValue2_4;
-
-bool saveBlink2_5=false;
-bool OneRazPosition2_5=false; // Один раз завести правильное значение из меню
-int16_t old_StopToAccelValue;
-int16_t old_PositionUpCount2_5;
-bool saveBlink_sensOnValue2_5;
-
-bool saveBlink2_6=false;
-bool OneRazPosition2_6=false; // Один раз завести правильное значение из меню
-int16_t old_StartPersentBright;
-int16_t old_PositionUpCount2_6;
-bool saveBlink_sensOnValue2_6;
-
-bool saveBlink2_7=false;
-bool OneRazPosition2_7=false; // Один раз завести правильное значение из меню
-int16_t old_StopPersentBright;
-int16_t old_PositionUpCount2_7;
-bool saveBlink_sensOnValue2_7;
-
-bool saveBlink2_8=false;
-bool OneRazPosition2_8=false; // Один раз завести правильное значение из меню
-int16_t old_DelayFallingBright;
-bool saveBlink_sensOnValue2_8;
-
-bool saveBlink2_9=false;
-bool OneRazPosition2_9=false; // Один раз завести правильное значение из меню
-int16_t old_BrightWhenIdle;
-int16_t old_PositionUpCount2_9;
-bool saveBlink_sensOnValue2_9;
-
-bool saveBlink2_10=false;
-bool OneRazPosition2_10=false; // Один раз завести правильное значение из меню
-int16_t old_SpeedFalling;
-int16_t old_PositionUpCount2_10;
-bool saveBlink_SpeedFalling2_10;
-
-bool saveBlink2_11=false;
-bool OneRazPosition2_11=false; // Один раз завести правильное значение из меню
-int16_t old_EcoBright;
-int16_t old_PositionUpCount2_11;
-bool saveBlink_EcoBright2_11;
-// Переменные для вкладки 2
-
-// Переменные для вкладки 3
-bool saveBlink3_0=false;
-bool OneRazGalochka3_0=false; // Один раз завести правильное значение из меню
-int16_t old_PositionUpCount3_0;
-bool saveBlink_EcoBright3_0;
-
-bool saveBlink3_1=false;
-bool OneRazGalochka3_1=false; // Один раз завести правильное значение из меню
-int16_t old_PositionUpCount3_1;
-bool saveBlink_EcoBright3_1;
-
-bool saveBlink3_11=false;
-bool OneRazPosition3_11=false; // Один раз завести правильное значение из меню
-int16_t old_SettingMaxVolumeOnSpeed;
-int16_t old_PositionUpCount3_11;
-bool saveBlink_sensOnValue3_11;
-
-bool saveBlink3_2=false;
-bool OneRazGalochka3_2=false;
-//bool OneRazPosition3_2=false; // Один раз завести правильное значение из меню
-int16_t old_PositionUpCount3_2;
-bool saveBlink_sensOnValue3_2;
-
-bool saveBlink3_21=false;
-bool OneRazPosition3_21;
-int16_t old_SettingTimePresseMax;
-bool saveBlink_sensOnValue3_21;
-
-
-bool saveBlink3_6=false;    
-int16_t old_HowLongTimeBeep; // Старое значение
-int16_t old_PositionUpCount3_6;
-bool OneRazPosition3_6 = false; // Один раз завести правильное значение из меню
-bool saveBlink_sensOnValue3_6 = false;
-
-bool saveBlink3_7=false;    
-int16_t old_HowLongTimeBeepMute; // Старое значение
-int16_t old_PositionUpCount3_7;
-bool OneRazPosition3_7 = false; // Один раз завести правильное значение из меню
-bool saveBlink_sensOnValue3_7 = false;
-// Переменные для вкладки 3
-
-// Переменные для вкладки 4
-bool saveBlink4_1=false;
-bool OneRazGalochka4_1=false; // Один раз завести правильное значение из меню
-int16_t old_PositionUpCount4_1;
-bool saveBlink_EcoBright4_1;
-// Переменные для вкладки 4
-
-// Переменные для вкладки 5 
-bool saveBlink5_1=false;
-bool OneRazGalochka5_1=false; // Один раз завести правильное значение из меню
-int16_t old_PositionUpCount5_1;
-bool saveBlink_EcoBright5_1;
-
-bool saveBlink5_2=false;
-bool OneRazPosition5_2=false; // Один раз завести правильное значение из меню
-int16_t old_BrightnessDayLight;
-int16_t old_PositionUpCount5_2;
-bool saveBlink_sensOnValue5_2;
-
-bool saveBlink5_3=false;
-bool OneRazPosition5_3=false; // Один раз завести правильное значение из меню
-int16_t old_BrightnessInEcoMode;
-int16_t old_PositionUpCount5_3;
-bool saveBlink_sensOnValue5_3;
-
-bool saveBlink5_4=false;
-bool OneRazPosition5_4=false; // Один раз завести правильное значение из меню
-int16_t old_FadingWhiteWhenTurning;
-int16_t old_PositionUpCount5_4;
-bool saveBlink_sensOnValue5_4;
-// Переменные для вкладки 5
+#include "MenuVariables_PrototypeFunc.h" //Переменные для работы меню и Прототипы функий SaveBlink
 
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
   bool TunL=false;              //2.1  //Включает и выключает свет при вьезде в туннель
@@ -281,10 +47,10 @@ bool saveBlink_sensOnValue5_4;
   bool TactPovorotnikiToLightOrBeep; // 4.2 //Будет ли стрелочка в такт со светом моргать или с буззером 
 
   bool ActivateDayLight = false; // 5.1
-  int8_t BrightnessDayLight; // 5.2
-  int8_t BrightnessInEcoMode; // 5.3
-  //int8_t BrightnessOnActivatedPassingLights; // 5.4
+  int8_t BrightnessDayLight;     // 5.2
+  int8_t BrightnessInEcoMode;    // 5.3
   int8_t FadingWhiteWhenTurning; // 5.4
+  int8_t BrightnessOnActivatedPassingLights; // 5.5
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
@@ -294,8 +60,35 @@ bool saveBlink_sensOnValue5_4;
 
   bool EnterOnTheAutoMode;     // 1.6
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
+
+// Переменные используемые поворотниками
+// #define YarkiyYellow // Переключатель на яркий жёлтый
+int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
+bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
+// Переменные для того чтоб в 101 при переборе значения поворотники моргали
+bool change101 = false; // Флаг что кнопка нажата и значение изменилось
+unsigned long timing101;  //для задержки в 500 мсек в 1.1 (101)
+// Переменные для того чтоб в 101 при переборе значения поворотники моргали
+bool AutomaticModeActivateR; // Активирует автоматический режим. (Если On cчитано из памяти) . Для правого поворотника   >0
+bool AutomaticModeActivateL;
+#include "PovorotnikiLR.h" // Включение и выключение поворотников
+
+bool OneRazSavePRK_GE;// Для корректного сбороса автоматического режима правого поворотника
+bool OneRazSavePRK_GE2L;// Для корректного сбороса автоматического режима левого поворотника
+  // Переменные для пищалки поворотника
+  bool OnSound = false; //Когда 
+  bool OnSoundR; //Для ристования стрелки по звуку
+  bool OnSoundL; //Для ристования стрелки по звуку
+
+  // Переменные для пищалки поворотника
+  #define BUZZER_PIN 25 //Белый буззер пин 
+  //#define BuzzerON
+
+// Переменные используемые поворотниками
+
+
 #include "GlobalPrint.h"
-#define BUZZER_PIN 25 //Белый буззер пин 
+
 void setup(void) {
   Serial.begin(115200);
   u8g2.begin();
@@ -315,42 +108,43 @@ void setup(void) {
   // Чтение значений из Eeprom и присваивание их значений переменным
   // delay(100);
 
-  TunL=              EEPROM.readBool(0); // Чтение из адреса 0
-  sensOnValue=       EEPROM.readByte(1);
-  AdaptivBrightness= EEPROM.readBool(2);
-  StartToAccel=      EEPROM.readByte(3);
-  StopToAccel=       EEPROM.readByte(4);
+  TunL=                     EEPROM.readBool(0); // Чтение из адреса 0
+  sensOnValue=              EEPROM.readByte(1);
+  AdaptivBrightness=        EEPROM.readBool(2);
+  StartToAccel=             EEPROM.readByte(3);
+  StopToAccel=              EEPROM.readByte(4);
 
-  StartPersentBright=EEPROM.readByte(5);
-  StopPersentBright =EEPROM.readByte(6);
-  DelayFallingBright=EEPROM.readByte(7);
-  BrightWhenIdle=    EEPROM.readByte(8);
-
-  SpeedFalling =     EEPROM.readByte(9);
-  EcoBright =        EEPROM.readByte(10);
-  VolumeOnSpeed =    EEPROM.readBool(11);
+  StartPersentBright=       EEPROM.readByte(5);
+  StopPersentBright =       EEPROM.readByte(6);
+  DelayFallingBright=       EEPROM.readByte(7);
+  BrightWhenIdle=           EEPROM.readByte(8);
+        
+  SpeedFalling =            EEPROM.readByte(9);
+  EcoBright =               EEPROM.readByte(10);
+  VolumeOnSpeed =           EEPROM.readBool(11);
   SettingMaxVolumeOnSpeed = EEPROM.readByte(12);
 
-  VolumeTimePressed    = EEPROM.readBool(13);
-  SettingTimePresseMax = EEPROM.readByte(14);
+  VolumeTimePressed    =    EEPROM.readBool(13);
+  SettingTimePresseMax =    EEPROM.readByte(14);
 
-  SpeedPovorotnikBlink = EEPROM.readByte(15);
-  IntelligentMode      = EEPROM.readBool(16);
-  CountBlinkIntMode     =EEPROM.readByte(17);
-  AutomaticMode         =EEPROM.readByte(18);
-  TimePressToOnAutoMode =EEPROM.readByte(19);
+  SpeedPovorotnikBlink =    EEPROM.readByte(15);
+  IntelligentMode      =    EEPROM.readBool(16);
+  CountBlinkIntMode     =   EEPROM.readByte(17);
+  AutomaticMode         =   EEPROM.readByte(18);
+  TimePressToOnAutoMode =   EEPROM.readByte(19);
 
-  EnterOnTheAutoMode =EEPROM.readBool(20);
-  BuzzerOn =EEPROM.readBool(21);
-  DrawPovorotniki=EEPROM.readBool(22);
-  HowLongTimeBeep=EEPROM.readByte(23);
-  HowLongTimeBeepMute=EEPROM.readByte(24);
+  EnterOnTheAutoMode    =   EEPROM.readBool(20);
+  BuzzerOn              =   EEPROM.readBool(21);
+  DrawPovorotniki       =   EEPROM.readBool(22);
+  HowLongTimeBeep       =   EEPROM.readByte(23);
+  HowLongTimeBeepMute   =   EEPROM.readByte(24);
 
   TactPovorotnikiToLightOrBeep=EEPROM.readByte(25);
   ActivateDayLight            =EEPROM.readBool(26);
   BrightnessDayLight          =EEPROM.readByte(27);
   BrightnessInEcoMode         =EEPROM.readByte(28); // 5.3
   FadingWhiteWhenTurning      =EEPROM.readByte(29); // 5.4
+  BrightnessOnActivatedPassingLights=EEPROM.readByte(30);// 5.5
 
   // Чтение значений из Eeprom и присваивание их значений переменным
 }
@@ -360,14 +154,9 @@ void setup(void) {
 void loop(void) {
 while(1){
 
-// Печать отладки
-// /*
- GlobalPrint();
-// */
-// Печать отладки  
+ GlobalPrint();// Печать отладки
 
 // Обработка кнопок
-  //Debounce(UpButtonPin,buttonState4,lastButtonState4,lastDebounceTime4,debounceDelay4);//Обработка нажатия вверх
   DebounceV2(UpButtonPin,buttonState4,lastButtonState4,lastDebounceTime4,debounceDelay4,MinusUP4,OneRazFirstTimePressed4,TimePressed4,FirstTimePressed4);//Обработка нажатия вверх +
   DebounceV2(DownButtonPin,buttonState2,lastButtonState2,lastDebounceTime2,debounceDelay2,MinusUP2,OneRazFirstTimePressed2,TimePressed2,FirstTimePressed2);
 
@@ -404,8 +193,10 @@ if(MenuLayer==-1){
 
 // Ползаем по главному меню
 if(MenuLayer==0 || MenuLayer==1){
-  RightInt=false; // Cкидываем чтоб после того как выходим из меню в главный экран не включался правый поворотник
-  PovorotnikiRightOff(); PovorotnikiLeftOff();           //Защита от загорания при переходе в главное меню из int mode
+  //RightInt=false; // Cкидываем чтоб после того как выходим из меню в главный экран не включался правый поворотник
+  if(ActivateDayLight!=1){ // Если не включён режим day light (чтоб не было мерцания)
+    PovorotnikiRightOff(); PovorotnikiLeftOff();           //Защита от загорания при переходе в главное меню из int mode
+  }
   beginIntModeBlinkR = false; beginIntModeBlinkL = false;//Защита от загорания при переходе в главное меню из int mode
   
   //PovorotOnRight=false; // Чтоб при выходе из меню в главный экран не загорался поворотник
@@ -1714,11 +1505,10 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
 
 // Перебираем вкладку 5
  if(MenuLayer == 50){ //Если в подменю 2.1 Нажата кнопка влево то выйти в главное меню
-  if(PositionUpCount < 100){PositionUpCount = 100;} // Ограничить вертикальный ползунок при движении вверх
+  if(PositionUpCount < 100){MenuLayer=52; PositionUpCount = 104;} // Ограничить вертикальный ползунок при движении вверх
 
     if(PositionUpCount==100){   CirclY = 20-1;   }  //TunL  //Перебираем ползунок
     if(PositionUpCount==101){   CirclY = 45-1;   }          //Перебираем ползунок
-    //if(PositionUpCount==102){   CirclY = 40-1;   }        //Перебираем ползунок
 
     if(PositionRightCount == 2 && PositionUpCount==100){ MenuLayer=501; PositionUpCount=120; }//Если курсор первая строка и есть нажатие вправо - перейти в 2.11 //TunL
     if(PositionRightCount == 2 && PositionUpCount==101){ MenuLayer=502; PositionUpCount=180; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
@@ -1743,6 +1533,7 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     if(PositionUpCount==101){    MenuLayer=50;  } //При скролле вверх перейти на верхнюю часть страницы
     if(PositionRightCount == 0){ MenuLayer=1;  PositionUpCount=5; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
     
+    if(PositionUpCount==104){    MenuLayer=52;  } //При скролле вниз перейти на нижнюю часть страницы
     //OneRazGalochka5_1 = false;
     //OneRazGalochka3_3 = false;
     OneRazPosition5_3 = false; // Сброс один раз исполнить
@@ -1751,16 +1542,38 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     OneRazPosition5_4 = false; // Сброс один раз исполнить
     saveBlink_sensOnValue5_4=false;
 }
- if(MenuLayer == 501){ // 4.1 + Звук от поворотников
+ if(MenuLayer == 52){ //Если в подменю 2.1 Нажата кнопка влево то выйти в главное меню
+
+    if(PositionUpCount==104){   CirclY = 7;   }  //TunL  //Перебираем ползунок
+    //if(PositionUpCount==105){   CirclY = 37;   }          //Перебираем ползунок
+
+     if(PositionRightCount == 2 && PositionUpCount==104){ MenuLayer=505; PositionUpCount=180; }//Если курсор первая строка и есть нажатие вправо - перейти в 2.11 //TunL
+     //if(PositionRightCount == 2 && PositionUpCount==103){ MenuLayer=504; PositionUpCount=180; }//Если курсор вторая строка и есть нажатие вправо - перейти в 2.1.2 //sensOn
+    
+    if(PositionUpCount==103){    MenuLayer=51;  } //При скролле вверх перейти на верхнюю часть страницы
+    if(PositionRightCount == 0){ MenuLayer=1;  PositionUpCount=5; }//Если нажать влево то выйти в главное меню и переместить курсор на позицию 3
+    
+    if(PositionUpCount==105 || PositionUpCount==106 ){ PositionUpCount = 104; MenuLayer=52;  } //При скролле вниз перейти на нижнюю часть страницы
+
+    OneRazPosition5_5 = false; // Сброс один раз исполнить
+    saveBlink_sensOnValue5_5=false;
+}
+
+ if(MenuLayer == 501){ // 5.1 
+    static bool SaveOk501=false; // Для того чтоб убрать глюк ленты при использовании EEPROM
     if(PositionRightCount ==1){ // back
         MenuLayer=50;PositionUpCount=100;
+        if(SaveOk501 == true){ EEPROM.writeByte(26, ActivateDayLight); EEPROM.commit(); SaveOk501 = false; }
     }
+    
     if(PositionRightCount ==3){ // save
         if(PositionUpCount ==120){ ActivateDayLight=true; }
-        if(PositionUpCount ==121){ ActivateDayLight=false;}
+        if(PositionUpCount ==121){ ActivateDayLight=false;OneRazOffGabarit=1;}
         //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
-        EEPROM.writeBool(26, ActivateDayLight);
-        EEPROM.commit();
+        
+        SaveOk501 = true;
+        //!EEPROM.writeBool(26, ActivateDayLight);
+        //!EEPROM.commit();
 
         saveBlink5_1=true;
         PositionRightCount =2;
@@ -1836,7 +1649,6 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
        MenuLayer=51;PositionUpCount=102;
        }
 }
-
  if(MenuLayer == 504){ // 2.6 StartPersentBright
     if(OneRazPosition5_4==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
        old_FadingWhiteWhenTurning = FadingWhiteWhenTurning;
@@ -1871,6 +1683,40 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
        MenuLayer=51;PositionUpCount=103;
        }
 }
+ if(MenuLayer == 505){ // 2.6 StartPersentBright
+    if(OneRazPosition5_5==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+       old_BrightnessOnActivatedPassingLights = BrightnessOnActivatedPassingLights;
+       //PositionUpCount=old_PositionUpCount2_4;
+       
+       // Исполнить один раз чтоб галочка соответствовала значению      
+        PositionUpCount=map(BrightnessOnActivatedPassingLights,0,100,-180,-280);
+       // Исполнить один раз чтоб галочка соответствовала значению
+              
+        OneRazPosition5_5=true;
+      }                            // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
+      old_PositionUpCount5_5=PositionUpCount; // Постоянно присваивать в старое значение
+      BrightnessOnActivatedPassingLights=abs(    (180 + PositionUpCount)   );
+    
+       BrightnessOnActivatedPassingLights=constrain(BrightnessOnActivatedPassingLights,0,100);
+       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+       if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
+
+       if(PositionRightCount ==3){ // save
+          //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
+        
+        EEPROM.writeByte(30,BrightnessOnActivatedPassingLights);EEPROM.commit();
+        
+          saveBlink_sensOnValue5_5=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+          saveBlink5_5=true; // Чтобы моргала надпись save
+          PositionRightCount =2; // Вернуть ползунок по горизонтали
+       }
+       if(PositionRightCount ==1){ // back
+          if(saveBlink_sensOnValue5_5 != true){
+              BrightnessOnActivatedPassingLights=old_BrightnessOnActivatedPassingLights;
+          }
+       MenuLayer=52;PositionUpCount=104;
+       }
+}
 // Перебираем вкладку 5
 // Отрисовка меню
 
@@ -1899,7 +1745,7 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               (PovorotOnLeft==true && beginIntModeBlinkL==true) ||  
               (AutomaticModeActivateL==1 && PovorotOnLeft==true) ||  
               (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true )  )
-              { //Если правый поворотник горит то нарисовать правый поворотник
+              { //Если левый поворотник горит то нарисовать правый поворотник
                   u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
               }
           } // Если включена отрисовка стрелочки в зависимости от света
@@ -1955,7 +1801,9 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
 
            if (Perebor == 0){
               //if (millis() - timingOn > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+              #ifdef BuzzerON
               digitalWrite(25,HIGH); // Включить буззер
+              #endif
               if (millis() - timingOn > (HowLongTimeBeep*100) ){ // Вместо 10000 подставьте нужное вам значение паузы                  
                   timingPause= millis(); 
                   Perebor=1;
@@ -2333,7 +2181,6 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
   }
   
-
   if (MenuLayer == 20 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
@@ -3223,11 +3070,10 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       PositionUpCount=constrain(PositionUpCount,120,121); // Ограничить движение галочки вверх вниз
   }
 
-//BrightnessDayLight
   if (MenuLayer == 50 ) {
     u8g2.clearBuffer();          // clear the internal memory
     u8g2.setFont(u8g2_font_6x12_tr);
-    u8g2.drawStr(30, 7, " 5 Gabariti "); // write something to the internal memory
+    u8g2.drawStr(30, 7, " 5 Dimensions "); // write something to the internal memory
 
     u8g2.drawStr(0, 25-3, "5.1 Activate"); // write something to the internal memory 
     u8g2.drawStr(0, 32, "DayLight"); // write something to the internal memory
@@ -3240,10 +3086,6 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     u8g2.drawStr(0, 42+17, "Day Light");
                            u8g2.setCursor(97,32+17);  
                            u8g2.print(BrightnessDayLight);
-/*
-    if(VolumeOnSpeed == true){      u8g2.drawStr(97, 32+17, "On");   }
-    else                     {      u8g2.drawStr(97, 32+17, "Off");  }
-*/
     
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
@@ -3266,6 +3108,25 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
     u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
     u8g2.sendBuffer();          // transfer internal memory to the display 
   }
+  if (MenuLayer == 52 ) {
+      u8g2.clearBuffer();          // clear the internal memory BrightnessOnActivatedPassingLights
+      u8g2.setFont(u8g2_font_6x12_tr);
+      u8g2.drawStr(0, 12, "5.5 Brightness"); // write something to the internal memory 3.3 Volume On Time
+      u8g2.drawStr(0, 22, "On Act. PassingLights");
+                           u8g2.setCursor(97,12);  
+                           u8g2.print(BrightnessOnActivatedPassingLights);
+      /*
+      u8g2.drawLine(0, 27, 105, 27);
+
+      u8g2.drawStr(0, 39, "5.4 Fading White");
+      u8g2.drawStr(0, 49, "When Turning"); // write something to the internal memory 
+                           u8g2.setCursor(97,39);  
+                           u8g2.print(FadingWhiteWhenTurning);                     
+      */
+      u8g2.drawTriangle(110+20,CirclY-5, 95+20,CirclY, 110+20,CirclY+5);  
+      u8g2.sendBuffer();          // transfer internal memory to the display 
+  }
+  
   if (MenuLayer == 501 )  { // 3.1
     
       if(saveBlink5_1==false){
@@ -3403,10 +3264,164 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           SaveBlink5_4();
       }  
   }
+  if (MenuLayer == 505 ) { // 2.6
+      if(saveBlink5_5 == false){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.5 BrightnessOnActivatedPassingLights"); // write something to the internal memory
+          
+          u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessOnActivatedPassingLights);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+      }
+      else{
+          SaveBlink5_5();
+      }  
+  }
 // Отрисовка меню
 
- }
+// Включение и выключение габаритов
+
+// При включённых габаритах замер момента когда включаются поворотники. Если поворотник включён то деактиваруется режим засветки белым
+if(ActivateDayLight == true){
+ // /*
+ if(  // Если сейчас работает правый поворотник (светится)
+     (PovorotOnRight==true && beginIntModeBlinkR==true  && MenuLayer == -1 ) ||  
+     (AutomaticModeActivateR==1 && PovorotOnRight==true && MenuLayer == -1 ) ||  
+     (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true && MenuLayer == -1)  )
+     { 
+        ActivateDayLight = 0; // То отключить габариты. И пока горит жёлтый они не будут мерцать.
+        AftherOn=1;
+     }
+     // Если сейчас работает правый поворотник (светится)
+// */
+
+///*
+  if(  
+      (PovorotOnLeft==true && beginIntModeBlinkL==true  && MenuLayer == -1) ||  
+      (AutomaticModeActivateL==1 && PovorotOnLeft==true && MenuLayer == -1) ||  
+      (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true && MenuLayer == -1)  )
+      { //
+        ActivateDayLight = 0; // То отключить габариты. И пока горит жёлтый они не будут мерцать.
+        AftherOn=1;
+      }
+ //*/
 }
+// При включённых габаритах замер момента когда включаются поворотники. Если поворотник включён то деактиваруется режим засветки белым
+
+
+  if(ActivateDayLight == true){ // Если включены габариты из меню
+
+      if(
+      // Повод затемнить от правого поворотника  
+      AutomaticModeActivateR == 1 || beginIntModeBlinkR==true ||
+      (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && MenuLayer == -1 && OffPovorotniki == false)
+      // Повод затемнить от правого поворотника
+      ||
+       // Повод затемнить от левого поворотника  
+      AutomaticModeActivateL == 1 || beginIntModeBlinkL==true ||
+      (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && MenuLayer == -1  && OffPovorotniki == false)
+      // Повод затемнить от левого поворотника
+      )
+
+      {
+      RgbwColor white(FadingWhiteWhenTurning);  //Создали белый. С "яркостью" 5.4
+       for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+      }
+      //Если не моргает поворотник то светить с яркостью из пункта 5.2
+      else{
+         RgbwColor white(BrightnessDayLight);
+         for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+      }
+     
+  }
+  
+  else{
+    //Один раз выключить
+    if(OneRazOffGabarit == 1){
+        RgbwColor black(0);
+
+        for(int i=0; i<26;++i){ strip.SetPixelColor(i, black); }
+        strip.Show();
+
+        OneRazOffGabarit = 0; //Закрыть замочек
+    }
+     //Один раз выключить
+  }
+  
+ // Serial.print(" AftherOn:" );Serial.print(AftherOn);Serial.println();
+ 
+if(AftherOn == 1){ // Возвращаем свечение габаритов
+  ActivateDayLight=1;
+  AftherOn=0; //Закрыть замочек
+   
+}
+//Serial.print(" (S)AftherOn " );Serial.print(AftherOn );
+//Serial.println();
+// Включение и выключение габаритов
+
+
+ } // while1
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//strip.SetBrightness(BrightnessDayLight);// Установить яркость поворотников  
 void SaveBlink1_1(){ // Анимация моргания слова save в подпункте 2.3
   static int8_t counterSaveBlink1_1;
   static unsigned long timing1_1;  if (millis() - timing1_1 > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
@@ -5386,7 +5401,6 @@ void SaveBlink5_3(){
           counterSaveBlink5_3=0;
    }
 }
-
 void SaveBlink5_4(){
   static int8_t counterSaveBlink5_4;
   static unsigned long timing;
@@ -5395,7 +5409,6 @@ void SaveBlink5_4(){
       timing = millis(); 
    }
    if(counterSaveBlink5_4 == 1){
-
 
     u8g2.clearBuffer();          // clear the internal memory
   
@@ -5459,6 +5472,77 @@ void SaveBlink5_4(){
           counterSaveBlink5_4=0;
    }
 }
+void SaveBlink5_5(){
+  static int8_t counterSaveBlink5_5;
+  static unsigned long timing;
+   if (millis() - timing > 200){ // Вместо 10000 подставьте нужное вам значение паузы 
+      counterSaveBlink5_5++;
+      timing = millis(); 
+   }
+   if(counterSaveBlink5_5 == 1){
+
+    u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.5 BrightnessOnActivatedPassingLights"); // write something to the internal memory
+          
+          u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessOnActivatedPassingLights);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "    "); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+   }
+   
+   if(counterSaveBlink5_5 == 2){
+          u8g2.clearBuffer();          // clear the internal memory
+  
+          u8g2.setFont(u8g2_font_6x12_tr); //u8g2.setFont(u8g2_font_7x14B_tr);	
+          u8g2.drawStr(0, 7,   "5.5 BrightnessOnActivatedPassingLights"); // write something to the internal memory
+          
+          u8g2.drawStr(0, 35,   "Persent: ");
+          u8g2.setFont(u8g2_font_10x20_tr);	      
+    
+          u8g2.setCursor(55,35);  u8g2.print(BrightnessOnActivatedPassingLights);         
+
+          u8g2.drawTriangle(85+1,28, 88+1,16, 91+1,28);
+          u8g2.drawTriangle(85+1,32, 88+1,44, 91+1,32);
+       
+          u8g2.setFont(u8g2_font_7x14_tr);	
+
+          u8g2.drawTriangle(108,62, 128,57, 108,52); // стрелка под save
+          u8g2.drawTriangle(20,62, 0,57, 20,52);     // стрелка по back
+
+          u8g2.setFont(u8g2_font_7x14_tf);
+          u8g2.drawStr(40, 60, "0 - 100");
+
+          u8g2.setFont(u8g2_font_6x12_tr);
+          u8g2.drawStr(105, 50, "save"); 
+          u8g2.drawStr(0,   50, "back"); 
+      
+          u8g2.sendBuffer();          // transfer internal memory to the display
+
+          saveBlink5_5=false; // Этот буль отключает исполнение функции SaveBlink2_1(); 
+          counterSaveBlink5_5=0;
+   }
+}
+
+
 /*
 void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,
 unsigned long& lastDebounceTime,uint8_t debounceDelay){
@@ -5536,7 +5620,7 @@ void SerialInput( ) {
         //CirclY= constrain(CirclY,5,45);
       }
       if (inputString == "e\n") { //вход
-        if (CirclY == 2) { // Если круг напротив пункта ближ свет  // Тут enum можно
+        if (CirclY == 2) { // Если круг напротив пункта ближ свет  // Тут enum мо��но
 
           MenuLayer = 2; // Переключение
           CirclY = 10;

@@ -19,21 +19,23 @@ Serial.print(" OldPositionRightCount(Auto):" );   Serial.print(OldPositionRightC
 Serial.print(" OldPositionRightCountInt:" );Serial.print(OldPositionRightCountInt);
 */
 Serial.print(" AutomaticModeActivateR:" );Serial.print(AutomaticModeActivateR ); 
-Serial.print(" IntelligentMode:" );Serial.print(IntelligentMode);
+Serial.print(" PovorotOnRight:" );Serial.print(PovorotOnRight);
  Serial.print(" CountBlinkOnIntModeR:" );Serial.print(CountBlinkOnIntModeR);
 Serial.print(" OnSound:" );Serial.print(OnSound );
 
-Serial.print(" HowLongTimeBeep)/10:" );Serial.print(float(HowLongTimeBeep)/10 ,1 );
+Serial.print(" BrightnessDayLight" );Serial.print(BrightnessDayLight );
 
-Serial.print(" TactPovorotnikiToLightOrBeep:" );Serial.print(TactPovorotnikiToLightOrBeep); //L -1 ;B - 0;
-
+Serial.print(" ActivateDayLight:" );Serial.print(ActivateDayLight); //L -1 ;B - 0;
+Serial.print(" OffPovorotniki:" );Serial.print(OffPovorotniki);
+Serial.println();
+// Serial.print(" AftherOn:" );Serial.print(AftherOn);
 //Serial.print(" Perebor:" );Serial.print(Perebor ); 
 /*
-Serial.print(" PovorotOnLeft(int):" );Serial.print(PovorotOnLeft);
- Serial.print(" CountBlinkOnIntModeL:" );Serial.print(CountBlinkOnIntModeL);
+
+
 Serial.print(" beginIntModeBlinkL:" );Serial.print(beginIntModeBlinkL );
 */
-Serial.println();
+//Serial.println();
 }
 
 #endif
