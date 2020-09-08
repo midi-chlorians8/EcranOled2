@@ -3,7 +3,7 @@
 //bool RightInt=false; // Удалить похоже
 bool OneRazOffGabarit=true; //Габариты. Один раз выкл габариты
 bool AftherOn=false; //Габариты. Cлужебный буль. Отключает свечение габаритов на время пока светит поворотник 
-int8_t Mode; //Влияет на степень "Яркости" Габаритов. Может быть ECO(0) DRIVE(1) SPORT(2) .
+int8_t Mode=1; //Влияет на степень "Яркости" Габаритов. Может быть ECO(0) DRIVE(1) SPORT(2) .
 
 #include "DebounceLeftRight.h"   // Обработка горизонтальных кнопок
 #include "DebounceUpDown.h"      // Обработка вертикальных кнопок
@@ -62,7 +62,7 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
 
 // Переменные используемые поворотниками
-// #define YarkiyYellow // Переключатель на яркий жёлтый
+//#define YarkiyYellow // Переключатель на яркий жёлтый
 int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
 bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
 // Переменные для того чтоб в 101 при переборе значения поворотники моргали
@@ -82,8 +82,8 @@ bool OneRazSavePRK_GE2L;// Для корректного сбороса авто
 
   // Переменные для пищалки поворотника
   #define BUZZER_PIN 25 //Белый буззер пин 
-  //#define BuzzerON
-
+  #define BuzzerON
+ bool PovorotnikiOn; // В 101 для демонстрации 2 сразу
 // Переменные используемые поворотниками
 
 
@@ -353,7 +353,7 @@ if(MenuLayer == 14){
 if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
      
     static unsigned long timingLeftRightBlink101; // Используется для таймера моргания правого поворотника
-    static bool PovorotnikiOn;
+    
      /*
     Serial.print("PositionRightCount:" );Serial.print(PositionRightCount );
     Serial.print(" timingLeftRightBlink101:" );Serial.print(timingLeftRightBlink101 );
@@ -387,8 +387,9 @@ if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
           
           //static unsigned long timing101;  //для задержки в 500 мсек в 1.1 (101)
           if(CountStepTiming == 0){ //Пауза в 0.5 сек перед тем как начать моргать
-              PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
-             
+              if(ActivateDayLight!=1){ //Лич! Если не включён режим day light (чтоб не было мерцания)
+                  PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
+              }
               if (millis() - timing101 > 1000){ // Если прошла секунда то увеличить счётчик и начать моргать
                   Serial.println ("0.5 seconds Prostoi. Next");
                   timing101=millis();
@@ -409,17 +410,24 @@ if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
                   timingLeftRightBlink101 = millis(); 
               }
               if(PovorotnikiOn == true){ // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
-                  RgbColor color = RgbColor(200, 255, 0); //Создали жёлтый
+                  #ifdef YarkiyYellow
+                  RgbwColor  color = RgbwColor(200, 255, 0,0); //Создали жёлтый
+                  #else
+                  RgbwColor  color = RgbwColor(5, 5, 0,0); //Создали лёгкий жёлтый
+                  #endif
                   for(int i=0;  i<26;++i) {strip.SetPixelColor(i, color);}   strip.Show();// Зажечь левый правый поворотник
               }                          // Если включен по таймеру буль светится правому поворотнику то зажечься ЖЁЛТОМУ
               else{                       // Если выключен по таймеру буль светится правому поворотнику то диоды ПОГАСЛИ
-                    PovorotnikiRightOff(); // turn off the pixels
-                    PovorotnikiLeftOff(); // turn off the pixels
+                    if(ActivateDayLight!=1){ //Лич! Если не включён режим day light (чтоб не было мерцания)
+                          PovorotnikiRightOff(); // turn off the pixels
+                          PovorotnikiLeftOff(); // turn off the pixels
+                    }
                   }
               if (millis() - timing101 > 4000){  //Время сколько происходит моргание 
                   //Serial.println ("4 seconds Proslo");
-                  
-                  PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
+                  if(ActivateDayLight!=1){ //Лич! Если не включён режим day light (чтоб не было мерцания)
+                    PovorotnikiRightOff(); PovorotnikiLeftOff(); // turn off the pixels
+                  }
                   CountStepTiming = 0;
                   change101 = false; //Перезаряд
                   PovorotnikiOn=0;
@@ -449,8 +457,10 @@ if(MenuLayer == 101){ // 1.1 SpeedPovorotnikBlink
           if(saveBlink_sensOnValue1_1 != true){SpeedPovorotnikBlink=old_SpeedPovorotnikBlink; }
           if(SaveOk101 == true){ EEPROM.writeByte(15, SpeedPovorotnikBlink); EEPROM.commit(); SaveOk101 = false; }
           // Чтоб если мы выходим на моменте когда лента в демонстрации горит
-          PovorotnikiRightOff(); // turn off the pixels
-          PovorotnikiLeftOff(); // turn off the pixels
+          if(ActivateDayLight!=1){ //Лич! Если не включён режим day light (чтоб не было мерцания)
+            PovorotnikiRightOff(); // turn off the pixels
+            PovorotnikiLeftOff(); // turn off the pixels
+          }
           CountStepTiming=0;
           change101=false;timing101 = millis();
           MenuLayer=10;PositionUpCount=50;
@@ -3304,10 +3314,13 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
 // При включённых габаритах замер момента когда включаются поворотники. Если поворотник включён то деактиваруется режим засветки белым
 if(ActivateDayLight == true){
  // /*
+
  if(  // Если сейчас работает правый поворотник (светится)
      (PovorotOnRight==true && beginIntModeBlinkR==true  && MenuLayer == -1 ) ||  
      (AutomaticModeActivateR==1 && PovorotOnRight==true && MenuLayer == -1 ) ||  
-     (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true && MenuLayer == -1)  )
+     (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true && MenuLayer == -1) ||   
+      (MenuLayer == 101 && PovorotnikiOn==true)
+     )
      { 
         ActivateDayLight = 0; // То отключить габариты. И пока горит жёлтый они не будут мерцать.
         AftherOn=1;
@@ -3319,7 +3332,9 @@ if(ActivateDayLight == true){
   if(  
       (PovorotOnLeft==true && beginIntModeBlinkL==true  && MenuLayer == -1) ||  
       (AutomaticModeActivateL==1 && PovorotOnLeft==true && MenuLayer == -1) ||  
-      (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true && MenuLayer == -1)  )
+      (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true && MenuLayer == -1)   
+       //MenuLayer == 101
+       )
       { //
         ActivateDayLight = 0; // То отключить габариты. И пока горит жёлтый они не будут мерцать.
         AftherOn=1;
@@ -3347,11 +3362,17 @@ if(ActivateDayLight == true){
       RgbwColor white(FadingWhiteWhenTurning);  //Создали белый. С "яркостью" 5.4
        for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
       }
-      //Если не моргает поворотник то светить с яркостью из пункта 5.2
-      else{
-         RgbwColor white(BrightnessDayLight);
-         for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
-      }
+      
+      else{ //Если НЕ МОРГАЕТ поворотник то светить с яркостью из пункта 5.2 или 5.3 Если сейчас ECO режим
+         if(Mode == 1 || Mode == 2){ // Если сейчас режимы DRIVE(1) SPORT(2)
+            RgbwColor white(BrightnessDayLight);
+            for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+         }                            // Если сейчас режимы DRIVE(1) SPORT(2)
+         if(Mode == 0){ // ECO(0)
+            RgbwColor white(BrightnessInEcoMode);
+            for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+         }
+      }     //Если НЕ МОРГАЕТ поворотник то светить с яркостью из пункта 5.2 или 5.3 Если сейчас ECO режим
      
   }
   
