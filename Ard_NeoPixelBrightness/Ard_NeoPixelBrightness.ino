@@ -17,8 +17,8 @@ const uint8_t PixelPin = 27;  // make sure to set this to the correct pin, ignor
 RgbColor red(colorSaturation, 0, 0);
 RgbColor green(0, colorSaturation, 0);
 RgbColor blue(0, 0, colorSaturation);
-// RgbwColor white(5); 
-RgbwColor white2(128,128,128,128);
+ RgbwColor white(255); 
+//RgbwColor white2(128,128,128,128);
 
 // Make sure to provide the correct color order feature
 // for your NeoPixels
@@ -50,10 +50,10 @@ void setup()
     Serial.println("Running...");
 
     // set our three original colors
-    strip.SetPixelColor(0, red);
-    strip.SetPixelColor(1, green);
-    strip.SetPixelColor(2, blue);
- //   strip.SetPixelColor(3, white);
+    strip.SetPixelColor(0, white);
+    strip.SetPixelColor(1, white);
+    strip.SetPixelColor(2, white);
+    strip.SetPixelColor(3, white);
       //  strip.SetPixelColor(3, white2);
     strip.Show();
 }

@@ -48,21 +48,29 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
   bool ActivateDayLight = false; // 5.1
   int8_t BrightnessDayLight;     // 5.2
+  uint8_t BrightnessDayLight255;
+
   int8_t BrightnessInEcoMode;    // 5.3
+  uint8_t BrightnessInEcoMode255;
+  
   int8_t FadingWhiteWhenTurning; // 5.4
-  int8_t BrightnessOnActivatedPassingLights; // 5.5
+  uint8_t FadingWhiteWhenTurning255;
+
+  int8_t  BrightnessOnActivatedPassingLights; // 5.5
+  uint8_t BrightnessOnActivatedPassingLights255;
 
   int8_t SpeedPovorotnikBlink; // 1.1
   bool IntelligentMode;        // 1.2
   int8_t CountBlinkIntMode;    // 1.3
   bool AutomaticMode;          // 1.4 
   int8_t TimePressToOnAutoMode;// 1.5
-
   bool EnterOnTheAutoMode;     // 1.6
+
+  bool ActivatePassingLight = false; // Относится к пункту меню 2 но оттуда не активируется. А активируется при нажатии кнопки вверх
 // Переменные которые мы изменяем из меню. Которые и влияют на работу системы
 
 // Переменные используемые поворотниками
-//#define YarkiyYellow // Переключатель на яркий жёлтый
+#define YarkiyYellow // Переключатель на яркий жёлтый
 int8_t CountStepTiming=0;// Перебор пунктиков меню 101 для демонстрации скорости моргания поворотников
 bool OffPovorotniki = false; //Переменная выключае поворотники при выходе из главного меню
 // Переменные для того чтоб в 101 при переборе значения поворотники моргали
@@ -75,15 +83,16 @@ bool AutomaticModeActivateL;
 
 bool OneRazSavePRK_GE;// Для корректного сбороса автоматического режима правого поворотника
 bool OneRazSavePRK_GE2L;// Для корректного сбороса автоматического режима левого поворотника
-  // Переменные для пищалки поворотника
-  bool OnSound = false; //Когда 
-  bool OnSoundR; //Для ристования стрелки по звуку
-  bool OnSoundL; //Для ристования стрелки по звуку
-
-  // Переменные для пищалки поворотника
-  #define BUZZER_PIN 25 //Белый буззер пин 
-  #define BuzzerON
- bool PovorotnikiOn; // В 101 для демонстрации 2 сразу
+ 
+// Переменные для пищалки поворотника
+bool OnSound = false; //Когда 
+bool OnSoundR; //Для ристования стрелки по звуку
+bool OnSoundL; //Для ристования стрелки по звуку
+// Переменные для пищалки поворотника
+ 
+#define BUZZER_PIN 25 //Белый буззер пин 
+#define BuzzerON
+bool PovorotnikiOn; // В 101 для демонстрации 2 сразу
 // Переменные используемые поворотниками
 
 
@@ -145,8 +154,11 @@ void setup(void) {
   BrightnessInEcoMode         =EEPROM.readByte(28); // 5.3
   FadingWhiteWhenTurning      =EEPROM.readByte(29); // 5.4
   BrightnessOnActivatedPassingLights=EEPROM.readByte(30);// 5.5
-
   // Чтение значений из Eeprom и присваивание их значений переменным
+BrightnessDayLight255=map(BrightnessDayLight,0,100,0,255); // Конвертация для максимальной яркости светодиода
+BrightnessInEcoMode255=map(BrightnessInEcoMode,0,100,0,255); // Конвертация для максимальной яркости светодиода
+FadingWhiteWhenTurning255=map(FadingWhiteWhenTurning,0,100,0,255); // Конвертация для максимальной яркости светодиода
+BrightnessOnActivatedPassingLights255=map(BrightnessOnActivatedPassingLights,0,100,0,255);
 }
 //void Debounce(const int8_t buttonPin,bool& buttonState,bool& lastButtonState,unsigned long& lastDebounceTime,uint8_t debounceDelay);
 //bool MinusUP4 = false;
@@ -161,7 +173,7 @@ while(1){
   DebounceV2(DownButtonPin,buttonState2,lastButtonState2,lastDebounceTime2,debounceDelay2,MinusUP2,OneRazFirstTimePressed2,TimePressed2,FirstTimePressed2);
 
   Debounce(RightButtonPin,buttonState26,lastbuttonState26,lastDebounceTime26,debounceDelay26);//Обработка нажатия вверх
-  Debounce(LeftButtonPin,buttonState32,lastbuttonState32,lastDebounceTime32,debounceDelay32);//Обработка нажатия вверх
+  Debounce(LeftButtonPin, buttonState32,lastbuttonState32,lastDebounceTime32,debounceDelay32);//Обработка нажатия вверх
 // Обработка кнопок 
 
 // Главный экран
@@ -1606,6 +1618,12 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       BrightnessDayLight=abs(    (180 + PositionUpCount)   );
     
        BrightnessDayLight=constrain(BrightnessDayLight,0,100);
+      // Зажечь демонстрацию
+        BrightnessDayLight255=map(BrightnessDayLight,0,100,0,255); // Конвертация для максимальной яркости светодиода
+        RgbwColor white(BrightnessDayLight255);
+        for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)
+      // Зажечь демонстрацию
+
        if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
        if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
 
@@ -1614,15 +1632,17 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
         
         EEPROM.writeByte(27,BrightnessDayLight);//StopPersentBright
         EEPROM.commit();
-          saveBlink_sensOnValue5_2=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
-          saveBlink5_2=true; // Чтобы моргала надпись save
-          PositionRightCount =2; // Вернуть ползунок по горизонтали
+
+        saveBlink_sensOnValue5_2=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+        saveBlink5_2=true; // Чтобы моргала надпись save
+        PositionRightCount =2; // Вернуть ползунок по горизонтали
        }
        if(PositionRightCount ==1){ // back
           if(saveBlink_sensOnValue5_2 != true){
               BrightnessDayLight=old_BrightnessDayLight;
           }
        MenuLayer=50;PositionUpCount=101;
+       RgbwColor black(0);for(int i=0; i<26;++i){ strip.SetPixelColor(i, black); } strip.Show();
        }
 }
  if(MenuLayer == 503){ // 2.6 StartPersentBright
@@ -1639,14 +1659,21 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       old_PositionUpCount5_3=PositionUpCount; // Постоянно присваивать в старое значение
       BrightnessInEcoMode=abs(    (180 + PositionUpCount)   );
     
-       BrightnessInEcoMode=constrain(BrightnessInEcoMode,0,100);
-       if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
-       if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
+      BrightnessInEcoMode=constrain(BrightnessInEcoMode,0,100);
+      
+      // Зажечь демонстрацию
+      BrightnessInEcoMode255=map(BrightnessInEcoMode,0,100,0,255); // Конвертация для максимальной яркости светодиода
+      RgbwColor white(BrightnessInEcoMode255);
+      for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)
+      // Зажечь демонстрацию
 
-       if(PositionRightCount ==3){ // save
+      if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
+      if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
+
+      if(PositionRightCount ==3){ // save
           //Тут должен быть ввод нового значения переменной и сохранения в EEPROM
         
-        EEPROM.writeByte(28,BrightnessInEcoMode);EEPROM.commit();
+          EEPROM.writeByte(28,BrightnessInEcoMode);EEPROM.commit();
         
           saveBlink_sensOnValue5_3=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
           saveBlink5_3=true; // Чтобы моргала надпись save
@@ -1656,10 +1683,12 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
           if(saveBlink_sensOnValue5_3 != true){
               BrightnessInEcoMode=old_BrightnessInEcoMode;
           }
+
        MenuLayer=51;PositionUpCount=102;
+       RgbwColor black(0);for(int i=0; i<26;++i){ strip.SetPixelColor(i, black); } strip.Show();
        }
 }
- if(MenuLayer == 504){ // 2.6 StartPersentBright
+ if(MenuLayer == 504){ // FadingWhiteWhenTurning255
     if(OneRazPosition5_4==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
        old_FadingWhiteWhenTurning = FadingWhiteWhenTurning;
        //PositionUpCount=old_PositionUpCount2_4;
@@ -1673,7 +1702,14 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       old_PositionUpCount5_4=PositionUpCount; // Постоянно присваивать в старое значение
       FadingWhiteWhenTurning=abs(    (180 + PositionUpCount)   );
     
-       FadingWhiteWhenTurning=constrain(FadingWhiteWhenTurning,0,100);
+      FadingWhiteWhenTurning=constrain(FadingWhiteWhenTurning,0,100);
+
+      // Зажечь демонстрацию
+      FadingWhiteWhenTurning255=map(FadingWhiteWhenTurning,0,100,0,255); // Конвертация для максимальной яркости светодиода
+      RgbwColor white(FadingWhiteWhenTurning255);
+      for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)
+      // Зажечь демонстрацию
+
        if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
        if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
 
@@ -1691,9 +1727,10 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               FadingWhiteWhenTurning=old_FadingWhiteWhenTurning;
           }
        MenuLayer=51;PositionUpCount=103;
+       RgbwColor black(0);for(int i=0; i<26;++i){ strip.SetPixelColor(i, black); } strip.Show();
        }
 }
- if(MenuLayer == 505){ // 2.6 StartPersentBright
+ if(MenuLayer == 505){ // BrightnessOnActivatedPassingLights255
     if(OneRazPosition5_5==false){ // Один раз исполнить. Чтобы появилось в менюшке правильное значение которое в системе
        old_BrightnessOnActivatedPassingLights = BrightnessOnActivatedPassingLights;
        //PositionUpCount=old_PositionUpCount2_4;
@@ -1707,7 +1744,12 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       old_PositionUpCount5_5=PositionUpCount; // Постоянно присваивать в старое значение
       BrightnessOnActivatedPassingLights=abs(    (180 + PositionUpCount)   );
     
-       BrightnessOnActivatedPassingLights=constrain(BrightnessOnActivatedPassingLights,0,100);
+      BrightnessOnActivatedPassingLights=constrain(BrightnessOnActivatedPassingLights,0,100);
+      // Зажечь демонстрацию
+      BrightnessOnActivatedPassingLights255=map(BrightnessOnActivatedPassingLights,0,100,0,255); // Конвертация для максимальной яркости светодиода
+      RgbwColor white(BrightnessOnActivatedPassingLights255);
+      for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)
+      // Зажечь демонстрацию
        if( PositionUpCount>-180){PositionUpCount=-180;}  // Защита от выхода за диапазон)
        if( PositionUpCount<-280){PositionUpCount=-280;}  // Защита от выхода за диапазон)
 
@@ -1725,6 +1767,7 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               BrightnessOnActivatedPassingLights=old_BrightnessOnActivatedPassingLights;
           }
        MenuLayer=52;PositionUpCount=104;
+       RgbwColor black(0);for(int i=0; i<26;++i){ strip.SetPixelColor(i, black); } strip.Show();
        }
 }
 // Перебираем вкладку 5
@@ -3364,13 +3407,15 @@ if(ActivateDayLight == true){
       }
       
       else{ //Если НЕ МОРГАЕТ поворотник то светить с яркостью из пункта 5.2 или 5.3 Если сейчас ECO режим
-         if(Mode == 1 || Mode == 2){ // Если сейчас режимы DRIVE(1) SPORT(2)
-            RgbwColor white(BrightnessDayLight);
-            for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
-         }                            // Если сейчас режимы DRIVE(1) SPORT(2)
-         if(Mode == 0){ // ECO(0)
-            RgbwColor white(BrightnessInEcoMode);
-            for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+         if(MenuLayer != 502 || MenuLayer != 503 || MenuLayer != 504  || MenuLayer != 505){ // Чтобы работала демонстрация
+            if(Mode == 1 || Mode == 2){ // Если сейчас режимы DRIVE(1) SPORT(2)
+                RgbwColor white(BrightnessDayLight255);
+                for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+            }                            // Если сейчас режимы DRIVE(1) SPORT(2)
+            if(Mode == 0){ // ECO(0)
+                RgbwColor white(BrightnessInEcoMode);
+                for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+            }
          }
       }     //Если НЕ МОРГАЕТ поворотник то светить с яркостью из пункта 5.2 или 5.3 Если сейчас ECO режим
      
@@ -3403,6 +3448,43 @@ if(AftherOn == 1){ // Возвращаем свечение габаритов
 
  } // while1
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

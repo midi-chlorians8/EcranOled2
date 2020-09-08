@@ -25,8 +25,8 @@ Serial.print(" OnSound:" );Serial.print(OnSound );
 
 Serial.print(" BrightnessDayLight" );Serial.print(BrightnessDayLight );
 
-Serial.print(" ActivateDayLight:" );Serial.print(ActivateDayLight); //L -1 ;B - 0;
-Serial.print(" OffPovorotniki:" );Serial.print(OffPovorotniki);
+Serial.print(" BrightnessInEcoMode255:" );Serial.print(BrightnessInEcoMode255); //L -1 ;B - 0;
+Serial.print(" BrightnessInEcoMode:" );Serial.print(BrightnessInEcoMode);
 Serial.println();
 // Serial.print(" AftherOn:" );Serial.print(AftherOn);
 //Serial.print(" Perebor:" );Serial.print(Perebor ); 
