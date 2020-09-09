@@ -200,6 +200,7 @@ if(MenuLayer==-1){
 // /*
    
   // Измеряем время нажатия правой или левой кнопки для входа для включения автоматического режима
+  
 }
 // Главный экран
 
@@ -1101,7 +1102,7 @@ if(MenuLayer == 208){ // 2.8 Delay fall bright
          EEPROM.writeByte(7,DelayFallingBright);// 
          EEPROM.commit();
 
-        saveBlink_sensOnValue2_8=true; // Нужно чтобы при выходе не сбрасывалось значение sensOnValue 
+        saveBlink_sensOnValue2_8=true; // Нужно чтобы при выход�� не сбрасывалось значение sensOnValue 
         saveBlink2_8=true; // Чтобы моргала надпись save
         PositionRightCount =2; // Вернуть ползунок по горизонтали
       }

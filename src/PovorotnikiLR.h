@@ -121,7 +121,6 @@ void Povorotniki(){
     }
  }
 
-
     if(Stop == false){ // Подписать
         if(IntelligentMode == 0){ // Если intelligentmode выключен
             if(OffPovorotniki == false){ // Если мы только что не вышли из главного меню то можно моргать поворотниками (Если можно моргать поворотником)
@@ -227,7 +226,6 @@ void Povorotniki(){
     static bool EndedR=false;
  
     static bool LeftInt=false;
-    
     //static int8_t CountBlinkOnIntModeL; //Cчётчик морганий фактических левого поворотника
     static bool HelloFromAutoMode=false; //Нужен чтобы после завершения автомат режима небыло остаточных морганий со счётчика int
     if(IntelligentMode == 1 ){
