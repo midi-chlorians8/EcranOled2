@@ -23,10 +23,10 @@ Serial.print(" PovorotOnRight:" );Serial.print(PovorotOnRight);
  Serial.print(" CountBlinkOnIntModeR:" );Serial.print(CountBlinkOnIntModeR);
 Serial.print(" OnSound:" );Serial.print(OnSound );
 
-Serial.print(" BrightnessDayLight" );Serial.print(BrightnessDayLight );
+//Serial.print(" BrightnessDayLight" );Serial.print(BrightnessDayLight );
 
-Serial.print(" BrightnessInEcoMode255:" );Serial.print(BrightnessInEcoMode255); //L -1 ;B - 0;
-Serial.print(" BrightnessInEcoMode:" );Serial.print(BrightnessInEcoMode);
+//Serial.print(" BrightnessInEcoMode255:" );Serial.print(BrightnessInEcoMode255); //L -1 ;B - 0;
+//Serial.print(" TactPovorotnikiToLightOrBeep:" );Serial.print(TactPovorotnikiToLightOrBeep);
 Serial.println();
 // Serial.print(" AftherOn:" );Serial.print(AftherOn);
 //Serial.print(" Perebor:" );Serial.print(Perebor ); 

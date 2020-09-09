@@ -193,6 +193,8 @@ int16_t old_PositionUpCount5_5;
 bool saveBlink_sensOnValue5_5;
 // Переменные для вкладки 5
 
+void DayLight();
+
 void SaveBlink1_1();
 void SaveBlink1_2();
 void SaveBlink1_3(); 

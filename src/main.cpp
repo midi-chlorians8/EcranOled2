@@ -1478,7 +1478,6 @@ if(MenuLayer == 3021){ // 3.21
           }
       }
 }
-
 // Перебираем вкладку 3
 
 // Перебираем вкладку 4
@@ -1771,9 +1770,9 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
        }
 }
 // Перебираем вкладку 5
-// Отрисовка меню
 
-  if (MenuLayer == -1){
+// Отрисовка меню
+  if (MenuLayer == -1){ // Отрисовка поворотника + Писк
       u8g2.clearBuffer();          // clear the internal memory   
       
       static unsigned long timingOn; // Время Писка
@@ -1785,13 +1784,15 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       }
       if(DrawPovorotniki == true){ // Если включена отрисовка поворотников то рисуем стрелочки
           // Стрелочка ресуется в соответствии с могранием поворотника
-          if (TactPovorotnikiToLightOrBeep == 1){ // Если включена отрисовка стрелочки в зависимости от света    
+          if (TactPovorotnikiToLightOrBeep == 1){ // Если включена отрисовка стрелочки в зависимости от света      
               if(  
-              (PovorotOnRight==true && beginIntModeBlinkR==true) ||  
+              (PovorotOnRight==true && beginIntModeBlinkR==true ) ||  
               (AutomaticModeActivateR==1 && PovorotOnRight==true) ||  
               (digitalRead(RightButtonPin)==HIGH && digitalRead(LeftButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateR==0 && PovorotOnRight==true )  )
               { //Если правый поворотник горит то нарисовать правый поворотник
-                  u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
+                  if(OffPovorotniki == false){ //Если мы не только что вышли из меню )
+                      u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
+                  }
               }
               
               if(  
@@ -1799,20 +1800,24 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               (AutomaticModeActivateL==1 && PovorotOnLeft==true) ||  
               (digitalRead(LeftButtonPin)==HIGH && digitalRead(RightButtonPin)==LOW && IntelligentMode == 0 && AutomaticModeActivateL==0 && PovorotOnLeft==true )  )
               { //Если левый поворотник горит то нарисовать правый поворотник
-                  u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
+                  if(OffPovorotniki == false){ //Если мы не только что вышли из меню )
+                      u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
+                  }
               }
           } // Если включена отрисовка стрелочки в зависимости от света
+
+          // Стрелочка рисуется в зависимости от звука поворотника
           if (TactPovorotnikiToLightOrBeep == 0){ // Если включена отрисовка стрелочки в зависимости от звука
               if(OnSoundR == true && Perebor == 0){
                   u8g2.drawTriangle(108,62-20, 128,52-20, 108,42-20); // правый
               }
               if(OnSoundL == true && Perebor == 0){
-                  u8g2.drawTriangle(20,22, 0,32, 20,42);               // левый
+                  u8g2.drawTriangle(20,22, 0,32, 20,42);              // левый
               }
           }
-          // Стрелочка ресуется в соответствии с могранием поворотника
+          // Стрелочка рисуется в зависимости от звука поворотника
 
-      }                           // Если включена отрисовка поворотников
+      }                           // Если включена отрисовка поворотников то рисуем стрелочки
       // Обработка  звука включение и выключение буззера при повороте
 
       
@@ -1845,15 +1850,11 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
       //}                                     // Если включен звук в зависимости от света     
          // Обработка  звука включение и выключение буззера при повороте
 
-//  /*
-      // Проигрывание звука вызванного работой поворотников 
-      
+      // Проигрывание звука вызванного работой поворотников  
       static unsigned long timingPause; // Время Паузы
       
       if(OnSound == true){
-
-           if (Perebor == 0){
-              //if (millis() - timingOn > 500){ // Вместо 10000 подставьте нужное вам значение паузы
+          if (Perebor == 0){
               #ifdef BuzzerON
               digitalWrite(25,HIGH); // Включить буззер
               #endif
@@ -1863,20 +1864,17 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
               }
            }
            if (Perebor == 1){
-              //if (millis() - timingPause > 500){ // Вместо 10000 подставьте нужное вам значение паузы
               digitalWrite(25,LOW); // Выключить буззер
               if (millis() - timingPause > (HowLongTimeBeepMute*100) ){ // Вместо 10000 подставьте нужное вам значение паузы 
                   timingOn = millis();
                   Perebor=0; 
               }
            }
-
       }
       else{
-        digitalWrite(25,LOW); // Выключить буззер
+          digitalWrite(25,LOW); // Выключить буззер
       }
       // Проигрывание звука вызванного работой поворотников
-       //*/
       u8g2.sendBuffer();          // transfer internal memory to the display
   }
   if (MenuLayer == 0 ) {
@@ -3352,12 +3350,38 @@ if(MenuLayer == 401){ // 4.1 + Звук от поворотников
   }
 // Отрисовка меню
 
+  DayLight();//Габариты. Вкл выкл. Не светят когда горит поворотник. И не светит когда активны пункты меню 502 503 504 505
+
+ } // while1
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void DayLight(){ //Габариты. Вкл выкл. Не светят когда горит поворотник
 // Включение и выключение габаритов
 
 // При включённых габаритах замер момента когда включаются поворотники. Если поворотник включён то деактиваруется режим засветки белым
 if(ActivateDayLight == true){
  // /*
-
  if(  // Если сейчас работает правый поворотник (светится)
      (PovorotOnRight==true && beginIntModeBlinkR==true  && MenuLayer == -1 ) ||  
      (AutomaticModeActivateR==1 && PovorotOnRight==true && MenuLayer == -1 ) ||  
@@ -3402,18 +3426,18 @@ if(ActivateDayLight == true){
       )
 
       {
-      RgbwColor white(FadingWhiteWhenTurning);  //Создали белый. С "яркостью" 5.4
-       for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
+      RgbwColor white(FadingWhiteWhenTurning255);  //Создали белый. С "яркостью" 5.4
+        for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
       }
       
       else{ //Если НЕ МОРГАЕТ поворотник то светить с яркостью из пункта 5.2 или 5.3 Если сейчас ECO режим
-         if(MenuLayer != 502 || MenuLayer != 503 || MenuLayer != 504  || MenuLayer != 505){ // Чтобы работала демонстрация
+         if(  MenuLayer != 502 && MenuLayer != 503 && MenuLayer != 504  && MenuLayer != 505     ){ // Чтобы работала демонстрация
             if(Mode == 1 || Mode == 2){ // Если сейчас режимы DRIVE(1) SPORT(2)
                 RgbwColor white(BrightnessDayLight255);
                 for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
             }                            // Если сейчас режимы DRIVE(1) SPORT(2)
             if(Mode == 0){ // ECO(0)
-                RgbwColor white(BrightnessInEcoMode);
+                RgbwColor white(BrightnessInEcoMode255);
                 for(int i=0; i<26;++i){strip.SetPixelColor(i, white);} strip.Show(); // Заливка белым (Габариты)   
             }
          }
@@ -3439,15 +3463,87 @@ if(ActivateDayLight == true){
 if(AftherOn == 1){ // Возвращаем свечение габаритов
   ActivateDayLight=1;
   AftherOn=0; //Закрыть замочек
-   
 }
 //Serial.print(" (S)AftherOn " );Serial.print(AftherOn );
 //Serial.println();
 // Включение и выключение габаритов
-
-
- } // while1
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
