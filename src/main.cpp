@@ -1,4 +1,4 @@
-//04.09
+//07.09
 #include <Arduino.h>
 //bool RightInt=false; // Удалить похоже
 bool OneRazOffGabarit=true; //Габариты. Один раз выкл габариты
